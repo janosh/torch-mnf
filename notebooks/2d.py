@@ -1,5 +1,5 @@
 # %%
-import itertools
+# import itertools
 
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
@@ -10,12 +10,13 @@ from matplotlib import collections as mc
 
 import data.sets
 import nf_lib.flows as nf
-from nf_lib.spline_flows import NSF_AR, NSF_CL
+
+# from nf_lib.spline_flows import NSF_AR, NSF_CL
 
 # %%
-# target_dist = data.sets.Moons()
+target_dist = data.sets.Moons()
 # target_dist = data.sets.Mixture()
-target_dist = data.sets.SIGGRAPH()
+# target_dist = data.sets.SIGGRAPH()
 samples = target_dist.sample(256)
 plt.title("target distribution")
 plt.scatter(*samples.T, s=10)
@@ -31,7 +32,7 @@ base = td.MultivariateNormal(torch.zeros(2), torch.eye(2))
 # Construct the flow.
 
 # --- RealNVP
-flows = [nf.AffineHalfFlow(dim=2, parity=i % 2) for i in range(9)]
+# flows = [nf.AffineHalfFlow(dim=2, parity=i % 2) for i in range(9)]
 
 # --- NICE
 # flows = [nf.AffineHalfFlow(dim=2, parity=i % 2, scale=False) for i in range(4)]
@@ -41,7 +42,7 @@ flows = [nf.AffineHalfFlow(dim=2, parity=i % 2) for i in range(9)]
 # flows = [nf.SlowMAF(dim=2, parity=i % 2) for i in range(4)]
 
 # --- MAF (with MADE net, so we get very fast density estimation)
-# flows = [nf.MAF(dim=2, parity=i % 2) for i in range(8)]
+flows = [nf.MAF(dim=2, parity=i % 2) for i in range(9)]
 
 # --- IAF (with MADE net, so we get very fast sampling)
 # flows = [nf.IAF(dim=2, parity=i % 2) for i in range(3)]
@@ -70,27 +71,32 @@ model = nf.NormalizingFlowModel(base, flows)
 
 
 # %%
-optimizer = torch.optim.Adam(
-    model.parameters(), lr=1e-4, weight_decay=1e-5
-)  # todo tune WD
+# todo tune WD
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
 print("number of params: ", sum(p.numel() for p in model.parameters()))
 
 
+def train(steps=1000, report_every=100, cb=None, samples=128):
+    model.train()
+    for step in range(steps):
+        x = target_dist.sample(samples)
+
+        zs, base_logprob, log_det = model(x)
+        logprob = base_logprob + log_det
+        loss = -torch.sum(logprob)  # NLL
+
+        model.zero_grad()  # Reset gradients.
+        loss.backward()  # Compute new gradients.
+        optimizer.step()  # Update weights.
+
+        if step % report_every == 0:
+            print(f"loss at step {step}: {loss:.4g}")
+            if callable(cb):
+                cb()
+
+
 # %%
-model.train()
-for k in range(1000):
-    x = target_dist.sample(128)
-
-    zs, base_logprob, log_det = model(x)
-    logprob = base_logprob + log_det
-    loss = -torch.sum(logprob)  # NLL
-
-    model.zero_grad()
-    loss.backward()
-    optimizer.step()
-
-    if k % 100 == 0:
-        print(f"loss: {format(loss.item(),'.4g')}")
+train()
 
 
 # %%
