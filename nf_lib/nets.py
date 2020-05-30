@@ -1,11 +1,5 @@
-"""
-Various helper network modules
-"""
-
 import torch
 from torch import nn
-
-from nf_lib.made import MADE
 
 
 class LeafParam(nn.Module):
@@ -19,11 +13,13 @@ class LeafParam(nn.Module):
         self.p = nn.Parameter(torch.zeros(1, n))
 
     def forward(self, x):
-        return self.p.expand(x.size(0), self.p.size(1))
+        # Create new view of p with singleton dimension expanded to len(x).
+        # Requires no extra memory. -1 means don't change size of that dimension.
+        return self.p.expand(x.size(0), -1)
 
 
 class MLP(nn.Module):
-    """ a simple 4-layer MLP """
+    """ Just a 4-layer perceptron. """
 
     def __init__(self, nin, nout, nh):
         super().__init__()
@@ -36,17 +32,6 @@ class MLP(nn.Module):
             nn.LeakyReLU(0.2),
             nn.Linear(nh, nout),
         )
-
-    def forward(self, x):
-        return self.net(x)
-
-
-class ARMLP(nn.Module):
-    """ a 4-layer auto-regressive MLP, wrapper around MADE net """
-
-    def __init__(self, nin, nout, nh):
-        super().__init__()
-        self.net = MADE(nin, [nh, nh, nh], nout, num_masks=1, natural_ordering=True)
 
     def forward(self, x):
         return self.net(x)

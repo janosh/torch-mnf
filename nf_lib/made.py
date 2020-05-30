@@ -11,7 +11,7 @@ from torch import nn
 
 
 class MaskedLinear(nn.Linear):
-    """ Same as Linear except for a configurable mask on the weights. """
+    """A dense layer with a configurable mask on the weights."""
 
     def __init__(self, in_features, out_features, bias=True):
         super().__init__(in_features, out_features, bias)
@@ -66,7 +66,7 @@ class MADE(nn.Module):
     def update_masks(self):
         if self.m and self.num_masks == 1:
             return  # only a single seed, skip for efficiency
-        L = len(self.hidden_sizes)
+        n_layers = len(self.hidden_sizes)
 
         # fetch the next seed and construct a random stream
         rng = np.random.RandomState(self.seed)
@@ -76,16 +76,18 @@ class MADE(nn.Module):
         self.m[-1] = (
             np.arange(self.nin) if self.natural_ordering else rng.permutation(self.nin)
         )
-        for l in range(L):
+        for lyr in range(n_layers):
             # Use minimum connectivity of previous layer as lower bound when sampling
             # values for m_l(k) to avoid unconnected units. See comment after eq. (13).
-            self.m[l] = rng.randint(
-                self.m[l - 1].min(), self.nin - 1, size=self.hidden_sizes[l]
+            self.m[lyr] = rng.randint(
+                self.m[lyr - 1].min(), self.nin - 1, size=self.hidden_sizes[lyr]
             )
 
         # construct the mask matrices
-        masks = [self.m[l - 1][:, None] <= self.m[l][None, :] for l in range(L)]
-        masks.append(self.m[L - 1][:, None] < self.m[-1][None, :])
+        masks = [
+            self.m[lyr - 1][:, None] <= self.m[lyr][None, :] for lyr in range(n_layers)
+        ]
+        masks.append(self.m[n_layers - 1][:, None] < self.m[-1][None, :])
 
         # handle the case where nout = nin * k, for integer k > 1
         if self.nout > self.nin:
@@ -94,9 +96,9 @@ class MADE(nn.Module):
             masks[-1] = np.concatenate([masks[-1]] * k, axis=1)
 
         # set the masks in all MaskedLinear layers
-        layers = [l for l in self.net.modules() if isinstance(l, MaskedLinear)]
-        for l, m in zip(layers, masks):
-            l.set_mask(m)
+        layers = [lyr for lyr in self.net.modules() if isinstance(lyr, MaskedLinear)]
+        for lyr, m in zip(layers, masks):
+            lyr.set_mask(m)
 
     def forward(self, x):
         return self.net(x)

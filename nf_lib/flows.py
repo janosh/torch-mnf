@@ -2,9 +2,20 @@
 Implements various flows.
 Each flow is invertible so it can be forward()ed and backward()ed.
 Notice that backward() is not backward as in backprop but simply inversion.
-Each flow also outputs its log det J "regularization"
+Each flow also outputs its log abs det J^-1 "regularization" called `log_det`.
 
-Reference:
+The Jacobian's determinant measures the local change of volume (due to
+stretching or squashing of space) under the flows transformation function
+y = f(x). We take the inverse Jacobian because we want to know how volume
+changes under x = f^-1(y), going from the space Y of real-world data we can
+observe to the space X of the base distribution. We work in log space for
+numerical stability, and take the absolute value because we don't care about
+changes in orientation, i.e. whether space is mirrored/reflected. We only
+care if it is stretched, since all we need is conservation of probability
+mass to retain a valid transformed PDF under f, no matter where in space
+that mass ends up.
+
+References:
 
 NICE: Non-linear Independent Components Estimation, Dinh et al. 2014
 https://arxiv.org/abs/1410.8516
@@ -38,7 +49,8 @@ https://arxiv.org/abs/1912.02762
 import torch
 from torch import nn
 
-from nf_lib.nets import ARMLP, MLP, LeafParam
+from nf_lib.made import MADE
+from nf_lib.nets import MLP, LeafParam
 
 
 class AffineConstantFlow(nn.Module):
@@ -115,7 +127,7 @@ class AffineHalfFlow(nn.Module):
         # transform other half of inputs as a function of the first
         if inverse:
             s, t = -s, -t
-            # what is called z1 is really x1 and vice versa since we're doing the inverse
+            # what's called z1 is really x1 and vice versa since we're doing the inverse
             z1 = (x1 + t) * torch.exp(s)
         else:
             z1 = torch.exp(s) * x1 + t
@@ -160,12 +172,16 @@ class SlowMAF(nn.Module):
 
 
 class MAF(nn.Module):
-    """ Masked Autoregressive Flow that uses a MADE-style network for fast forward. """
+    """ Masked Autoregressive Flow that uses a MADE-style network for single-pass and
+    hence fast forward() (for density estimation) but dim-times-pass, i.e. slow
+    backward() (for sampling).
+    """
 
-    def __init__(self, dim, parity, net_class=ARMLP, nh=24):
+    def __init__(self, dim, parity, net=None, nh=24):
         super().__init__()
         self.dim = dim
-        self.net = net_class(dim, dim * 2, nh)
+        # Uses a 4-layer auto-regressive MLP by default.
+        self.net = net or MADE(dim, [nh, nh, nh], 2 * dim, natural_ordering=True)
         self.parity = parity
 
     def forward(self, x):
@@ -192,12 +208,12 @@ class MAF(nn.Module):
 
 
 class IAF(MAF):
+    """ Reverses the flow of MAF, giving an Inverse Autoregressive Flow (IAF)
+    with fast sampling but slow density estimation.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        """
-        reverse the flow, giving an Inverse Autoregressive Flow (IAF) instead,
-        where sampling will be fast but density estimation slow
-        """
         self.forward, self.backward = self.backward, self.forward
 
 
