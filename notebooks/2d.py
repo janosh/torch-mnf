@@ -70,23 +70,23 @@ model = nf.NormalizingFlowModel(base, flows)
 
 
 # %%
-# todo tune WD
+# TODO: tune WD
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
 print("number of params: ", sum(p.numel() for p in model.parameters()))
 
 
-def train(steps=1000, report_every=100, cb=None, samples=128):
+def train(steps=1000, n_samples=128, report_every=100, cb=None):
     model.train()
     for step in range(steps):
-        x = target_dist.sample(samples)
+        x = target_dist.sample(n_samples)
 
-        zs, base_logprob, log_det = model(x)
-        logprob = base_logprob + log_det
+        zs, log_det, base_logprob = model(x)
+        logprob = log_det + base_logprob
         loss = -torch.sum(logprob)  # NLL
 
-        model.zero_grad()  # Reset gradients.
-        loss.backward()  # Compute new gradients.
-        optimizer.step()  # Update weights.
+        model.zero_grad()  # reset gradients
+        loss.backward()  # compute new gradients
+        optimizer.step()  # update weights
 
         if step % report_every == 0:
             print(f"loss at step {step}: {loss:.4g}")
@@ -101,28 +101,26 @@ train()
 # %%
 model.eval()
 
-x = target_dist.sample(128)
-zs, base_logprob, log_det = model(x)
-z = zs[-1]
+target_samples = target_dist.sample(128)
+zs, *_ = model(target_samples)
+target_samples = target_samples.detach().numpy()
+z_last = zs[-1].detach().numpy()
 
-x = x.detach().numpy()
-z = z.detach().numpy()
 p = model.base.sample([128, 2])
 plt.figure(figsize=(10, 5))
 plt.subplot(121)
-plt.scatter(*p.T, c="g", s=5)
-plt.scatter(*z.T, c="r", s=5)
-plt.scatter(*x.T, c="b", s=5)
+plt.scatter(*p.T, c="y", s=5)
+plt.scatter(*z_last.T, c="r", s=5)
+plt.scatter(*target_samples.T, c="b", s=5)
 plt.legend(["base", "x->z", "data"])
 plt.axis("scaled")
 plt.title("x -> z")
 
-zs = model.sample(128 * 8)
-z = zs[-1]
-z = z.detach().numpy()
+zs = model.sample(128 * 4)
+z_last = zs[-1].detach().numpy()
 plt.subplot(122)
-plt.scatter(*x.T, c="b", s=5, alpha=0.5)
-plt.scatter(*z.T, c="r", s=5, alpha=0.5)
+plt.scatter(*target_samples.T, c="b", s=5, alpha=0.5)
+plt.scatter(*z_last.T, c="r", s=5, alpha=0.5)
 plt.legend(["data", "z->x"])
 plt.title("z -> x")
 plt.axis("scaled")
@@ -131,29 +129,29 @@ plt.axis("scaled")
 # %%
 # plot the coordinate warp
 n_grid = 20  # number of grid points
-x_ticks, y_ticks = np.linspace(-3, 3, n_grid), np.linspace(-3, 3, n_grid)
-xv, yv = np.meshgrid(x_ticks, y_ticks)
-xy = np.stack([xv, yv], axis=-1)
+ticks = np.linspace(-3, 3, n_grid)
+xy = np.stack(np.meshgrid(ticks, ticks), axis=-1)
 # seems appropriate since we use radial distributions as base distributions
-in_circle = np.sqrt((xy ** 2).sum(axis=2)) <= 3
+in_circle = np.sqrt((xy ** 2).sum(axis=-1)) <= 3
 xy = xy.reshape((n_grid * n_grid, 2))
 xy = torch.from_numpy(xy.astype("float32"))
 
-zs, log_det = model.backward(xy)
+x_val = target_dist.sample(128 * 5)
 
+zs, _ = model.backward(xy)
+
+# %%
 backward_flow_names = [type(f).__name__ for f in reversed(model.flow.flows)]
-nz = len(zs)
-for i in range(nz - 1):
-    z0 = zs[i].detach().numpy()
-    z1 = zs[i + 1].detach().numpy()
+for idx in range(len(zs) - 1):
+    z0 = zs[idx].detach().numpy()
+    z1 = zs[idx + 1].detach().numpy()
 
     # plot how the samples travel at this stage
-    figs, [ax1, ax2] = plt.subplots(1, 2, figsize=(6, 3))
-    # plt.figure(figsize=(20,10))
+    figs, [ax1, ax2] = plt.subplots(1, 2, figsize=(10, 5))
     ax1.scatter(*z0.T, c="r", s=3)
     ax1.scatter(*z1.T, c="b", s=3)
-    ax1.axis([-3, 3, -3, 3])
-    ax1.set_title(f"layer {i} ->{i+1} ({backward_flow_names[i]})")
+    title = f"layer {idx} ->{idx+1} ({backward_flow_names[idx]})"
+    ax1.set(xlim=[-3, 3], ylim=[-3, 3], title=title)
 
     q = z1.reshape((n_grid, n_grid, 2))
     # y coords
@@ -168,27 +166,15 @@ for i in range(nz - 1):
     ax2.add_collection(lcy)
     ax2.add_collection(lcx)
     ax2.axis([-3, 3, -3, 3])
-    ax2.set_title(f"grid warp after layer {i+1}")
+    ax2.set_title(f"grid warp after layer {idx+1}")
 
     # draw the data too
-    plt.scatter(*x.T, c="r", s=5, alpha=0.5)
+    plt.scatter(*target_samples.T, c="r", s=5, alpha=0.5)
 
 
 # %%
-# Train and render. Do this with an untrained model to see changes.
-
-n_grid = 20
-x_ticks, y_ticks = np.linspace(-3, 3, n_grid), np.linspace(-3, 3, n_grid)
-xv, yv = np.meshgrid(x_ticks, y_ticks)
-xy = np.stack([xv, yv], axis=-1)
-in_circle = np.sqrt((xy ** 2).sum(axis=2)) <= 3
-xy = xy.reshape((n_grid * n_grid, 2))
-xy = torch.from_numpy(xy.astype("float32"))
-
-x_val = target_dist.sample(128 * 5)
-
-
-# %%
+# Callback to render progress while training. Do this with an untrained model to see
+# significant changes.
 def plot_learning():
     zs, _ = model.backward(xy)
 

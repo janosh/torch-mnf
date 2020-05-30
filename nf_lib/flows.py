@@ -294,7 +294,7 @@ class NormalizingFlowModel(nn.Module):
     def forward(self, x):
         zs, log_det = self.flow.forward(x)
         base_logprob = self.base.log_prob(zs[-1]).view(x.size(0), -1).sum(1)
-        return zs, base_logprob, log_det
+        return zs, log_det, base_logprob
 
     def backward(self, z):
         xs, log_det = self.flow.backward(z)
