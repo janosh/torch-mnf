@@ -1,7 +1,6 @@
 # %%
 # import itertools
 
-import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -131,7 +130,7 @@ plt.axis("scaled")
 
 # %%
 # plot the coordinate warp
-n_grid = 20
+n_grid = 20  # number of grid points
 x_ticks, y_ticks = np.linspace(-3, 3, n_grid), np.linspace(-3, 3, n_grid)
 xv, yv = np.meshgrid(x_ticks, y_ticks)
 xy = np.stack([xv, yv], axis=-1)
@@ -149,50 +148,34 @@ for i in range(nz - 1):
     z1 = zs[i + 1].detach().numpy()
 
     # plot how the samples travel at this stage
-    figs, axs = plt.subplots(1, 2, figsize=(6, 3))
+    figs, [ax1, ax2] = plt.subplots(1, 2, figsize=(6, 3))
     # plt.figure(figsize=(20,10))
-    axs[0].scatter(*z0.T, c="r", s=3)
-    axs[0].scatter(*z1.T, c="b", s=3)
-    axs[0].quiver(
-        z0[:, 0],
-        z0[:, 1],
-        z1[:, 0] - z0[:, 0],
-        z1[:, 1] - z0[:, 1],
-        units="xy",
-        scale=1,
-        alpha=0.5,
-    )
-    axs[0].axis([-3, 3, -3, 3])
-    axs[0].set_title("layer %d -> %d (%s)" % (i, i + 1, backward_flow_names[i]))
+    ax1.scatter(*z0.T, c="r", s=3)
+    ax1.scatter(*z1.T, c="b", s=3)
+    ax1.axis([-3, 3, -3, 3])
+    ax1.set_title(f"layer {i} ->{i+1} ({backward_flow_names[i]})")
 
     q = z1.reshape((n_grid, n_grid, 2))
     # y coords
     p1 = np.reshape(q[1:, :, :], (n_grid ** 2 - n_grid, 2))
     p2 = np.reshape(q[:-1, :, :], (n_grid ** 2 - n_grid, 2))
-    inc = np.reshape(in_circle[1:, :] | in_circle[:-1, :], (n_grid ** 2 - n_grid,))
-    p1, p2 = p1[inc], p2[inc]
     lcy = mc.LineCollection(zip(p1, p2), linewidths=1, alpha=0.5, color="k")
     # x coords
     p1 = np.reshape(q[:, 1:, :], (n_grid ** 2 - n_grid, 2))
     p2 = np.reshape(q[:, :-1, :], (n_grid ** 2 - n_grid, 2))
-    inc = np.reshape(in_circle[:, 1:] | in_circle[:, :-1], (n_grid ** 2 - n_grid,))
-    p1, p2 = p1[inc], p2[inc]
     lcx = mc.LineCollection(zip(p1, p2), linewidths=1, alpha=0.5, color="k")
     # draw the lines
-    axs[1].add_collection(lcy)
-    axs[1].add_collection(lcx)
-    axs[1].axis([-3, 3, -3, 3])
-    axs[1].set_title("grid warp at the end of %d" % (i + 1,))
+    ax2.add_collection(lcy)
+    ax2.add_collection(lcx)
+    ax2.axis([-3, 3, -3, 3])
+    ax2.set_title(f"grid warp after layer {i+1}")
 
     # draw the data too
     plt.scatter(*x.T, c="r", s=5, alpha=0.5)
 
 
 # %%
-
-# train and render
-# code duplication because it's very late at night now and i'm tired
-
+# Train and render. Do this with an untrained model to see changes.
 
 n_grid = 20
 x_ticks, y_ticks = np.linspace(-3, 3, n_grid), np.linspace(-3, 3, n_grid)
@@ -204,85 +187,42 @@ xy = torch.from_numpy(xy.astype("float32"))
 
 x_val = target_dist.sample(128 * 5)
 
-model.train()
-for k in range(500):
 
-    # sample
-    x = target_dist.sample(128)
+# %%
+def plot_learning():
+    zs, _ = model.backward(xy)
 
-    # train a bit
-    zs, base_logprob, log_det = model(x)
-    logprob = base_logprob + log_det
-    loss = -torch.sum(logprob)  # NLL
-    model.zero_grad()
-    loss.backward()
-    optimizer.step()
+    # plot how the samples travel at this stage
+    fig, axes = plt.subplots(3, 6, figsize=(20, 10))
+    fig.subplots_adjust(wspace=0.05, hspace=0.05)
 
-    if k % 10 == 0:
-        # vis
-        zs, _ = model.backward(xy)
-        backward_flow_names = [type(f).__name__ for f in model.flow.flows[::-1]]
-        nz = len(zs)
-        i = nz - 1 - 1
+    for idx, ax in enumerate(axes[:, :3].flat):
+        zi, zip1 = [zs[i].detach().numpy() for i in [idx, idx + 1]]
+        ax.scatter(*zi.T, c="r", s=1)
+        ax.scatter(*zip1.T, c="b", s=1)
+        ax.axis([-4, 4, -4, 4])
+        ax.set(xticks=[], yticks=[])
 
-        z0 = zs[i].detach().numpy()
-        z1 = zs[i + 1].detach().numpy()
+    ax = fig.add_subplot(122)
+    grid = zs[-1].detach().numpy().reshape((n_grid, n_grid, 2))
+    # y coords
+    p1 = np.reshape(grid[1:, :, :], (n_grid ** 2 - n_grid, 2))
+    p2 = np.reshape(grid[:-1, :, :], (n_grid ** 2 - n_grid, 2))
+    lcy = mc.LineCollection(zip(p1, p2), linewidths=1, alpha=0.5, color="k")
+    # x coords
+    p1 = np.reshape(grid[:, 1:, :], (n_grid ** 2 - n_grid, 2))
+    p2 = np.reshape(grid[:, :-1, :], (n_grid ** 2 - n_grid, 2))
+    lcx = mc.LineCollection(zip(p1, p2), linewidths=1, alpha=0.5, color="k")
+    # draw the lines
+    ax.add_collection(lcy)
+    ax.add_collection(lcx)
+    # draw the data too
+    ax.scatter(*x_val.T, c="r", s=20, alpha=0.5)
+    ax.set(xlim=[-2, 3], ylim=[-1.5, 2], xticks=[], yticks=[])
 
-        # plot how the samples travel at this stage
-        ss = 0.1
-        fig = plt.figure(figsize=(10, 5))
-        outer = gridspec.GridSpec(1, 2, wspace=ss, hspace=ss)
-        inner1 = gridspec.GridSpecFromSubplotSpec(
-            3, 3, subplot_spec=outer[0], wspace=ss, hspace=ss
-        )
-        inner2 = gridspec.GridSpecFromSubplotSpec(
-            1, 1, subplot_spec=outer[1], wspace=ss, hspace=ss
-        )
+    for ax in axes[:, 3:].flat:
+        ax.axis("off")
 
-        backward_flow_names = [type(f).__name__ for f in model.flow.flows[::-1]]
-        nz = len(zs)
-        for i in range(min(nz - 1, 9)):
-            ax = plt.Subplot(fig, inner1[i])
-            z0 = zs[i].detach().numpy()
-            z1 = zs[i + 1].detach().numpy()
-            ax.scatter(*z0.T, c="r", s=1, alpha=0.5)
-            ax.scatter(*z1.T, c="b", s=1, alpha=0.5)
-            ax.quiver(
-                *z0.T,
-                z1[:, 0] - z0[:, 0],
-                z1[:, 1] - z0[:, 1],
-                units="xy",
-                scale=1,
-                alpha=0.5,
-            )
-            ax.axis([-3, 3, -3, 3])
-            ax.set_yticklabels([])
-            ax.set_xticklabels([])
-            # ax.set_title("layer %d -> %d (%s)" % (i, i+1, backward_flow_names[i]))
-            fig.add_subplot(ax)
 
-        ax = plt.Subplot(fig, inner2[0])
-        q = z1.reshape((n_grid, n_grid, 2))
-        # y coords
-        p1 = np.reshape(q[1:, :, :], (n_grid ** 2 - n_grid, 2))
-        p2 = np.reshape(q[:-1, :, :], (n_grid ** 2 - n_grid, 2))
-        inc = np.reshape(in_circle[1:, :] | in_circle[:-1, :], (n_grid ** 2 - n_grid,))
-        p1, p2 = p1[inc], p2[inc]
-        lcy = mc.LineCollection(zip(p1, p2), linewidths=1, alpha=0.5, color="k")
-        # x coords
-        p1 = np.reshape(q[:, 1:, :], (n_grid ** 2 - n_grid, 2))
-        p2 = np.reshape(q[:, :-1, :], (n_grid ** 2 - n_grid, 2))
-        inc = np.reshape(in_circle[:, 1:] | in_circle[:, :-1], (n_grid ** 2 - n_grid,))
-        p1, p2 = p1[inc], p2[inc]
-        lcx = mc.LineCollection(zip(p1, p2), linewidths=1, alpha=0.5, color="k")
-        # draw the lines
-        ax.add_collection(lcy)
-        ax.add_collection(lcx)
-        ax.axis([-3, 3, -3, 3])
-        ax.set_yticklabels([])
-        ax.set_xticklabels([])
-        # ax.set_title("grid warp at the end of %d" % (i+1,))
-        fig.add_subplot(ax)
-
-        # draw the data too
-        plt.scatter(*x_val.T, c="r", s=5, alpha=0.5)
+# %%
+train(steps=400, cb=plot_learning)
