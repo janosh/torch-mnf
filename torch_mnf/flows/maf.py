@@ -28,7 +28,7 @@ class MAF(nn.Module):
         self.net = net or MADE(dim, [nh, nh, nh], 2 * dim, natural_ordering=True)
         self.parity = parity
 
-    def forward(self, x):
+    def inverse(self, x):
         # Since we can evaluate all of z in parallel, estimation will be fast.
         st = self.net(x)
         s, t = st.split(self.dim, dim=1)
@@ -38,7 +38,7 @@ class MAF(nn.Module):
         log_det = torch.sum(s, dim=1)
         return z, log_det
 
-    def inverse(self, z):
+    def forward(self, z):
         # we have to decode the x one at a time, sequentially
         x = torch.zeros_like(z)
         log_det = torch.zeros(z.size(0))

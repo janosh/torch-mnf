@@ -1,15 +1,16 @@
 """
-Neural Spline Flows, coupling and autoregressive
+Neural Spline Flows implemented as coupling (NSF_CL) and autoregressive
+layers (NSF_AR). NSF uses monotonic rational-quadratic spline transforms
+as drop-in replacements for affine or additive transformations.
 
-Paper reference: Durkan et al https://arxiv.org/abs/1906.04032
+Paper reference: Durkan et al. https://arxiv.org/abs/1906.04032
 Code adapted from: https://github.com/tonyduan/normalizing-flows/blob/master/nf/flows.py
 """
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torch.nn.init as init
+from torch import nn
 
 from torch_mnf.models import MLP
 
@@ -20,9 +21,11 @@ DEFAULT_MIN_DERIVATIVE = 1e-3
 
 def searchsorted(bin_locations, inputs, eps=1e-6):
     bin_locations[..., -1] += eps
-    return sum(inputs[..., None] >= bin_locations, dim=-1) - 1
+    return (inputs[..., None] >= bin_locations).sum(dim=-1) - 1
 
 
+# https://github.com/bayesiains/nsf/blob/master/nde/transforms/splines/rational_quadratic.py
+# RQS = Rational Quadratic Spline
 def unconstrained_RQS(
     inputs,
     unnormalized_widths,
@@ -34,11 +37,11 @@ def unconstrained_RQS(
     min_bin_height=DEFAULT_MIN_BIN_HEIGHT,
     min_derivative=DEFAULT_MIN_DERIVATIVE,
 ):
-    inside_intvl_mask = (inputs >= -tail_bound) & (inputs <= tail_bound)
-    outside_interval_mask = ~inside_intvl_mask
+    inside_interval_mask = (inputs >= -tail_bound) & (inputs <= tail_bound)
+    outside_interval_mask = ~inside_interval_mask
 
     outputs = torch.zeros_like(inputs)
-    logabsdet = torch.zeros_like(inputs)
+    log_abs_det = torch.zeros_like(inputs)
 
     unnormalized_derivatives = F.pad(unnormalized_derivatives, pad=(1, 1))
     constant = np.log(np.exp(1 - min_derivative) - 1)
@@ -46,13 +49,13 @@ def unconstrained_RQS(
     unnormalized_derivatives[..., -1] = constant
 
     outputs[outside_interval_mask] = inputs[outside_interval_mask]
-    logabsdet[outside_interval_mask] = 0
+    log_abs_det[outside_interval_mask] = 0
 
-    outputs[inside_intvl_mask], logabsdet[inside_intvl_mask] = RQS(
-        inputs=inputs[inside_intvl_mask],
-        unnormalized_widths=unnormalized_widths[inside_intvl_mask, :],
-        unnormalized_heights=unnormalized_heights[inside_intvl_mask, :],
-        unnormalized_derivatives=unnormalized_derivatives[inside_intvl_mask, :],
+    outputs[inside_interval_mask], log_abs_det[inside_interval_mask] = RQS(
+        inputs=inputs[inside_interval_mask],
+        unnormalized_widths=unnormalized_widths[inside_interval_mask, :],
+        unnormalized_heights=unnormalized_heights[inside_interval_mask, :],
+        unnormalized_derivatives=unnormalized_derivatives[inside_interval_mask, :],
         inverse=inverse,
         left=-tail_bound,
         right=tail_bound,
@@ -62,7 +65,7 @@ def unconstrained_RQS(
         min_bin_height=min_bin_height,
         min_derivative=min_derivative,
     )
-    return outputs, logabsdet
+    return outputs, log_abs_det
 
 
 def RQS(
@@ -152,8 +155,8 @@ def RQS(
             + 2 * input_delta * theta_one_minus_theta
             + input_derivatives * (1 - root).pow(2)
         )
-        logabsdet = torch.log(derivative_numerator) - 2 * torch.log(denominator)
-        return outputs, -logabsdet
+        log_abs_det = torch.log(derivative_numerator) - 2 * torch.log(denominator)
+        return outputs, -log_abs_det
     else:
         theta = (inputs - input_cumwidths) / input_bin_widths
         theta_one_minus_theta = theta * (1 - theta)
@@ -172,8 +175,8 @@ def RQS(
             + 2 * input_delta * theta_one_minus_theta
             + input_derivatives * (1 - theta).pow(2)
         )
-        logabsdet = torch.log(derivative_numerator) - 2 * torch.log(denominator)
-        return outputs, logabsdet
+        log_abs_det = torch.log(derivative_numerator) - 2 * torch.log(denominator)
+        return outputs, log_abs_det
 
 
 class NSF_AR(nn.Module):
@@ -191,28 +194,9 @@ class NSF_AR(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        init.uniform_(self.init_param, -1 / 2, 1 / 2)
+        nn.init.uniform_(self.init_param, -1 / 2, 1 / 2)
 
-    def forward(self, x):
-        z = torch.zeros_like(x)
-        log_det = torch.zeros(z.shape[0])
-        for i in range(self.dim):
-            if i == 0:
-                init_param = self.init_param.expand(x.shape[0], 3 * self.K - 1)
-                W, H, D = torch.split(init_param, self.K, dim=1)
-            else:
-                out = self.layers[i - 1](x[:, :i])
-                W, H, D = torch.split(out, self.K, dim=1)
-            W, H = torch.softmax(W, dim=1), torch.softmax(H, dim=1)
-            W, H = 2 * self.B * W, 2 * self.B * H
-            D = F.softplus(D)
-            z[:, i], ld = unconstrained_RQS(
-                x[:, i], W, H, D, inverse=False, tail_bound=self.B
-            )
-            log_det += ld
-        return z, log_det
-
-    def inverse(self, z):
+    def forward(self, z):
         x = torch.zeros_like(z)
         log_det = torch.zeros(x.shape[0])
         for i in range(self.dim):
@@ -231,6 +215,25 @@ class NSF_AR(nn.Module):
             log_det += ld
         return x, log_det
 
+    def inverse(self, x):
+        z = torch.zeros_like(x)
+        log_det = torch.zeros(z.shape[0])
+        for i in range(self.dim):
+            if i == 0:
+                init_param = self.init_param.expand(x.shape[0], 3 * self.K - 1)
+                W, H, D = torch.split(init_param, self.K, dim=1)
+            else:
+                out = self.layers[i - 1](x[:, :i])
+                W, H, D = torch.split(out, self.K, dim=1)
+            W, H = torch.softmax(W, dim=1), torch.softmax(H, dim=1)
+            W, H = 2 * self.B * W, 2 * self.B * H
+            D = F.softplus(D)
+            z[:, i], ld = unconstrained_RQS(
+                x[:, i], W, H, D, inverse=False, tail_bound=self.B
+            )
+            log_det += ld
+        return z, log_det
+
 
 class NSF_CL(nn.Module):
     """Neural spline flow, coupling layer, [Durkan et al. 2019]"""
@@ -243,9 +246,9 @@ class NSF_CL(nn.Module):
         self.f1 = base_network(dim // 2, (3 * K - 1) * dim // 2, hidden_dim)
         self.f2 = base_network(dim // 2, (3 * K - 1) * dim // 2, hidden_dim)
 
-    def forward(self, x):
-        log_det = torch.zeros(x.shape[0])
-        lower, upper = x[:, : self.dim // 2], x[:, self.dim // 2 :]
+    def forward(self, z):
+        log_det = torch.zeros(z.shape[0])
+        lower, upper = z[:, : self.dim // 2], z[:, self.dim // 2 :]
         out = self.f1(lower).reshape(-1, self.dim // 2, 3 * self.K - 1)
         W, H, D = torch.split(out, self.K, dim=2)
         W, H = torch.softmax(W, dim=2), torch.softmax(H, dim=2)
@@ -262,9 +265,9 @@ class NSF_CL(nn.Module):
         log_det += torch.sum(ld, dim=1)
         return torch.cat([lower, upper], dim=1), log_det
 
-    def inverse(self, z):
-        log_det = torch.zeros(z.shape[0])
-        lower, upper = z[:, : self.dim // 2], z[:, self.dim // 2 :]
+    def inverse(self, x):
+        log_det = torch.zeros(x.shape[0])
+        lower, upper = x[:, : self.dim // 2], x[:, self.dim // 2 :]
         out = self.f2(upper).reshape(-1, self.dim // 2, 3 * self.K - 1)
         W, H, D = torch.split(out, self.K, dim=2)
         W, H = torch.softmax(W, dim=2), torch.softmax(H, dim=2)

@@ -28,31 +28,30 @@ class AffineHalfFlow(nn.Module):
     def __init__(self, dim, parity, net_class=MLP, nh=24, scale=True, shift=True):
         super().__init__()
         self.parity = parity
-        self.s_cond = lambda x: x.new_zeros(x.size(0), dim // 2)
-        self.t_cond = lambda x: x.new_zeros(x.size(0), dim // 2)
+        self.s_net = self.t_net = lambda x: x.new_zeros(x.size(0), dim // 2)
         if scale:
-            self.s_cond = net_class(dim // 2, dim // 2, nh)
+            self.s_net = net_class(dim // 2, dim // 2, nh)
         if shift:
-            self.t_cond = net_class(dim // 2, dim // 2, nh)
+            self.t_net = net_class(dim // 2, dim // 2, nh)
 
-    def forward(self, x, inverse=False):
-        x0, x1 = x.chunk(2, dim=1)
-        if self.parity:
-            x0, x1 = x1, x0
-        s, t = self.s_cond(x0), self.t_cond(x0)
-        z0 = x0  # untouched half
-        # transform other half of inputs as a function of the first
-        if inverse:
-            s, t = -s, -t
-            # what's called z1 is really x1 and vice versa since we're doing the inverse
-            z1 = (x1 + t) * torch.exp(s)
-        else:
-            z1 = torch.exp(s) * x1 + t
+    def forward(self, z, inverse=False):
+        z0, z1 = z.chunk(2, dim=1)
         if self.parity:
             z0, z1 = z1, z0
-        z = torch.cat([z0, z1], dim=1)
+        s, t = self.s_net(z0), self.t_net(z0)
+        x0 = z0  # untouched half
+        # transform z1 as a function of z0
+        if inverse:
+            s, t = -s, -t  # change sign of s here to get the right log_det below
+            # what's called x1 is really z1 and vice versa since we're doing the inverse
+            x1 = (z1 + t) * torch.exp(s)
+        else:
+            x1 = torch.exp(s) * z1 + t
+        if self.parity:
+            x0, x1 = x1, x0
+        x = torch.cat([x0, x1], dim=1)
         log_det = torch.sum(s, dim=1)
-        return z, log_det
+        return x, log_det
 
-    def inverse(self, z):
-        return self.forward(z, inverse=True)
+    def inverse(self, x):
+        return self.forward(x, inverse=True)
