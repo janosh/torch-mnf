@@ -25,32 +25,29 @@ class MaskedLinear(nn.Linear):
 
 
 class MADE(nn.Module):
-    def __init__(self, nin, hidden_sizes, nout, num_masks=1, natural_ordering=False):
+    def __init__(self, n_in, hidden_sizes, n_out, num_masks=1, natural_ordering=False):
         """
-        nin (int): number of inputs
+        n_in (int): number of inputs
         hidden sizes (list of ints): number of units in hidden layers
-        nout (int): number of outputs, which usually collectively parameterize some
-            kind of 1D distribution
-            note: if nout is e.g. 2x larger than nin (perhaps the mean and std), then
-            the first nin will be all the means and the second nin will be stds. i.e.
-            output dimensions depend on the same input dimensions in "chunks" and should
-            be carefully decoded downstream appropriately. the output of running the
-            tests for this file makes this a bit more clear with examples.
+        n_out (int): number of outputs, which usually collectively parameterize some 1D
+            distribution. Note: if n_out is e.g. 2x larger than n_in (perhaps the mean
+            and std), then the first n_in will be all the means and the second n_in will
+            be the std. devs. Make sure to deconstruct this correctly downstream.
         num_masks: can be used to train ensemble over orderings/connections
         natural_ordering: retain ordering of inputs, don't use random permutations
         """
-        assert nout % nin == 0, "nout must be integer multiple of nin"
+        assert n_out % n_in == 0, "n_out must be integer multiple of n_in"
         super().__init__()
-        self.nin = nin
-        self.nout = nout
+        self.n_in = n_in
+        self.n_out = n_out
         self.hidden_sizes = hidden_sizes
 
         # define a simple MLP neural net
         layers = []
-        hs = [nin] + hidden_sizes + [nout]
+        hs = [n_in] + hidden_sizes + [n_out]
         for h0, h1 in zip(hs, hs[1:]):
             layers.extend([MaskedLinear(h0, h1), nn.ReLU()])
-        layers.pop()  # pop the last ReLU for the output layer
+        layers.pop()  # pop the last ReLU to get a linear output layer
         self.net = nn.Sequential(*layers)
 
         # seeds for orders/connectivities of the model ensemble
@@ -74,13 +71,15 @@ class MADE(nn.Module):
 
         # sample the order of the inputs and the connectivity of all neurons
         self.m[-1] = (
-            np.arange(self.nin) if self.natural_ordering else rng.permutation(self.nin)
+            np.arange(self.n_in)
+            if self.natural_ordering
+            else rng.permutation(self.n_in)
         )
         for lyr in range(n_layers):
             # Use minimum connectivity of previous layer as lower bound when sampling
             # values for m_l(k) to avoid unconnected units. See comment after eq. (13).
             self.m[lyr] = rng.randint(
-                self.m[lyr - 1].min(), self.nin - 1, size=self.hidden_sizes[lyr]
+                self.m[lyr - 1].min(), self.n_in - 1, size=self.hidden_sizes[lyr]
             )
 
         # construct the mask matrices
@@ -89,9 +88,9 @@ class MADE(nn.Module):
         ]
         masks.append(self.m[n_layers - 1][:, None] < self.m[-1][None, :])
 
-        # handle the case where nout = nin * k, for integer k > 1
-        if self.nout > self.nin:
-            k = int(self.nout / self.nin)
+        # handle the case where n_out = n_in * k, for integer k > 1
+        if self.n_out > self.n_in:
+            k = int(self.n_out / self.n_in)
             # replicate the mask across the other outputs
             masks[-1] = np.concatenate([masks[-1]] * k, axis=1)
 

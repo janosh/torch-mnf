@@ -8,7 +8,7 @@ import torch.distributions as td
 from matplotlib import collections as mc
 
 import data.sets
-import nf_lib.flows as nf
+import torch_mnf.flows as nf
 
 # from nf_lib.spline_flows import NSF_AR, NSF_CL
 
@@ -24,9 +24,6 @@ plt.scatter(*samples.T, s=10)
 # %%
 # Construct the base distribution for a normalizing flow model.
 base = td.MultivariateNormal(torch.zeros(2), torch.eye(2))
-# base = td.TransformedDistribution(
-#     td.Uniform(torch.zeros(2), torch.ones(2)), td.SigmoidTransform().inv
-# )  # Logistic distribution
 
 # Construct the flow.
 
@@ -51,7 +48,7 @@ flows = [nf.MAF(dim=2, parity=i % 2) for i in range(9)]
 # flows = list(itertools.chain(*zip(norms, flows)))
 
 # --- Glow paper
-# flows = [nf.Invertible1x1Conv(dim=2) for i in range(3)]
+# flows = [nf.Glow(dim=2) for i in range(3)]
 # norms = [nf.ActNorm(dim=2) for _ in flows]
 # couplings = [nf.AffineHalfFlow(dim=2, parity=i % 2, nh=32) for i in range(len(flows))]
 # flows = list(
@@ -61,7 +58,7 @@ flows = [nf.MAF(dim=2, parity=i % 2) for i in range(9)]
 # --- Neural splines, coupling
 # nfs_flow = NSF_CL if True else NSF_AR
 # flows = [nfs_flow(dim=2, K=8, B=3, hidden_dim=16) for _ in range(3)]
-# convs = [nf.Invertible1x1Conv(dim=2) for _ in flows]
+# convs = [nf.Glow(dim=2) for _ in flows]
 # norms = [nf.ActNorm(dim=2) for _ in flows]
 # flows = list(itertools.chain(*zip(norms, convs, flows)))
 
@@ -138,10 +135,10 @@ xy = torch.from_numpy(xy.astype("float32"))
 
 x_val = target_dist.sample(128 * 5)
 
-zs, _ = model.backward(xy)
+zs, _ = model.inverse(xy)
 
 # %%
-backward_flow_names = [type(f).__name__ for f in reversed(model.flow.flows)]
+reverse_flow_names = [type(f).__name__ for f in reversed(model.flow.flows)]
 for idx in range(len(zs) - 1):
     z0 = zs[idx].detach().numpy()
     z1 = zs[idx + 1].detach().numpy()
@@ -150,7 +147,7 @@ for idx in range(len(zs) - 1):
     figs, [ax1, ax2] = plt.subplots(1, 2, figsize=(10, 5))
     ax1.scatter(*z0.T, c="r", s=3)
     ax1.scatter(*z1.T, c="b", s=3)
-    title = f"layer {idx} ->{idx+1} ({backward_flow_names[idx]})"
+    title = f"layer {idx} ->{idx+1} ({reverse_flow_names[idx]})"
     ax1.set(xlim=[-3, 3], ylim=[-3, 3], title=title)
 
     q = z1.reshape((n_grid, n_grid, 2))
@@ -176,7 +173,7 @@ for idx in range(len(zs) - 1):
 # Callback to render progress while training. Do this with an untrained model to see
 # significant changes.
 def plot_learning():
-    zs, _ = model.backward(xy)
+    zs, _ = model.inverse(xy)
 
     # plot how the samples travel at this stage
     fig, axes = plt.subplots(3, 6, figsize=(20, 10))
@@ -212,3 +209,5 @@ def plot_learning():
 
 # %%
 train(steps=400, cb=plot_learning)
+
+# %%

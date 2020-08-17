@@ -2,7 +2,7 @@
 Neural Spline Flows, coupling and autoregressive
 
 Paper reference: Durkan et al https://arxiv.org/abs/1906.04032
-Code reference: slightly modified https://github.com/tonyduan/normalizing-flows/blob/master/nf/flows.py
+Code adapted from: https://github.com/tonyduan/normalizing-flows/blob/master/nf/flows.py
 """
 
 import numpy as np
@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 
-from nf_lib.nets import MLP
+from torch_mnf.models import MLP
 
 DEFAULT_MIN_BIN_WIDTH = 1e-3
 DEFAULT_MIN_BIN_HEIGHT = 1e-3
@@ -20,7 +20,7 @@ DEFAULT_MIN_DERIVATIVE = 1e-3
 
 def searchsorted(bin_locations, inputs, eps=1e-6):
     bin_locations[..., -1] += eps
-    return torch.sum(inputs[..., None] >= bin_locations, dim=-1) - 1
+    return sum(inputs[..., None] >= bin_locations, dim=-1) - 1
 
 
 def unconstrained_RQS(
@@ -177,7 +177,7 @@ def RQS(
 
 
 class NSF_AR(nn.Module):
-    """ Neural spline flow, coupling layer, [Durkan et al. 2019] """
+    """Neural spline flow, coupling layer, [Durkan et al. 2019]"""
 
     def __init__(self, dim, K=5, B=3, hidden_dim=8, base_network=MLP):
         super().__init__()
@@ -212,7 +212,7 @@ class NSF_AR(nn.Module):
             log_det += ld
         return z, log_det
 
-    def backward(self, z):
+    def inverse(self, z):
         x = torch.zeros_like(z)
         log_det = torch.zeros(x.shape[0])
         for i in range(self.dim):
@@ -233,7 +233,7 @@ class NSF_AR(nn.Module):
 
 
 class NSF_CL(nn.Module):
-    """ Neural spline flow, coupling layer, [Durkan et al. 2019] """
+    """Neural spline flow, coupling layer, [Durkan et al. 2019]"""
 
     def __init__(self, dim, K=5, B=3, hidden_dim=8, base_network=MLP):
         super().__init__()
@@ -262,7 +262,7 @@ class NSF_CL(nn.Module):
         log_det += torch.sum(ld, dim=1)
         return torch.cat([lower, upper], dim=1), log_det
 
-    def backward(self, z):
+    def inverse(self, z):
         log_det = torch.zeros(z.shape[0])
         lower, upper = z[:, : self.dim // 2], z[:, self.dim // 2 :]
         out = self.f2(upper).reshape(-1, self.dim // 2, 3 * self.K - 1)

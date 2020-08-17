@@ -23,7 +23,7 @@ class SIGGRAPH:
 
 
 class Moons:
-    """ Two half-moons """
+    """Two half-moons """
 
     def sample(self, n):
         moons = datasets.make_moons(n_samples=n, noise=0.05)[0].astype("float32")
@@ -31,7 +31,7 @@ class Moons:
 
 
 class Mixture:
-    """ Mixture of 4 Gaussians """
+    """Mixture of 4 Gaussians """
 
     def sample(self, n):
         assert n % 4 == 0
