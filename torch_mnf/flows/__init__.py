@@ -35,7 +35,7 @@ class NormalizingFlow(nn.Module):
     def forward(self, z):  # z -> x
         log_det = torch.zeros(z.size(0))
         xs = [z]
-        for flow in reversed(self.flows):
+        for flow in self.flows:
             z, ld = flow.forward(z)
             log_det += ld
             xs.append(z)
@@ -44,31 +44,25 @@ class NormalizingFlow(nn.Module):
     def inverse(self, x):  # x -> z
         log_det = torch.zeros(x.size(0))
         zs = [x]
-        for flow in self.flows:
+        for flow in reversed(self.flows):
             x, ld = flow.inverse(x)
             log_det += ld
             zs.append(x)
         return zs, log_det
 
 
-class NormalizingFlowModel(nn.Module):
+class NormalizingFlowModel(NormalizingFlow):
     """A normalizing flow model is a (base distro, flow) pair."""
 
     def __init__(self, base, flows):
-        super().__init__()
+        super().__init__(flows)
         self.base = base
-        self.flow = NormalizingFlow(flows)
 
-    def forward(self, z):
-        xs, log_det = self.flow.forward(z)
-        return xs, log_det
-
-    def inverse(self, x):
-        zs, log_det = self.flow.inverse(x)
-        base_logprob = self.base.log_prob(zs[-1]).view(x.size(0), -1).sum(1)
-        return zs, log_det, base_logprob
+    def base_log_prob(self, x):
+        zs, _ = self.inverse(x)
+        return self.base.log_prob(zs[-1])
 
     def sample(self, *num_samples):
         z = self.base.sample(num_samples)
-        xs, _ = self.flow.forward(z)
+        xs, _ = self.forward(z)
         return xs
