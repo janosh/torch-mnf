@@ -7,14 +7,14 @@ import torch
 from matplotlib.collections import LineCollection
 from torch.distributions import MultivariateNormal
 
-import data.sets
 import torch_mnf.flows as nf
+from torch_mnf import data
 
 # %%
-target_dist = data.sets.Moons()
-# target_dist = data.sets.Mixture()
-# target_dist = data.sets.SIGGRAPH()
-samples = target_dist.sample(256)
+sample_target = data.sample_moons
+# sample_target = data.sample_siggraph
+# sample_target = data.sample_gaussian_mixture
+samples = sample_target(256)
 plt.title("target distribution")
 plt.scatter(*samples.T, s=10)
 
@@ -25,24 +25,24 @@ base = MultivariateNormal(torch.zeros(2), torch.eye(2))
 
 # Construct the flow.
 
-# --- RealNVP
+# ### RealNVP
 # flows = [nf.AffineHalfFlow(dim=2, parity=i % 2) for i in range(9)]
 
-# --- NICE
+# ### NICE
 # flows = [nf.AffineHalfFlow(dim=2, parity=i % 2, scale=False) for i in range(4)]
 # flows.append(nf.AffineConstantFlow(dim=2, shift=False))
 
-# --- MAF (with MADE net, so we get very fast density estimation)
+# ### MAF (with MADE net, so we get very fast density estimation)
 # flows = [nf.MAF(dim=2, parity=i % 2) for i in range(9)]
 
-# --- IAF (with MADE net, so we get very fast sampling)
+# ### IAF (with MADE net, so we get very fast sampling)
 # flows = [nf.IAF(dim=2, parity=i % 2) for i in range(4)]
 
-# --- insert ActNormFlows to any of the flows above
+# ### insert ActNormFlows to any of the flows above
 # norms = [nf.ActNormFlow(dim=2) for _ in flows]
 # flows = list(chain(*zip(norms, flows)))
 
-# --- Glow paper
+# ### Glow paper
 # flows = [nf.Glow(dim=2) for i in range(3)]
 # norms = [nf.ActNormFlow(dim=2) for _ in flows]
 # couplings = [nf.AffineHalfFlow(dim=2, parity=i % 2, nh=32) for i in range(len(flows))]
@@ -50,7 +50,7 @@ base = MultivariateNormal(torch.zeros(2), torch.eye(2))
 #     chain(*zip(norms, flows, couplings))
 # )  # append a coupling layer after each 1x1
 
-# --- Neural splines, coupling
+# ### Neural splines, coupling
 flows = [nf.NSF_CL(dim=2, K=8, B=3, hidden_dim=16) for _ in range(3)]
 convs = [nf.Glow(dim=2) for _ in flows]
 norms = [nf.ActNormFlow(dim=2) for _ in flows]
@@ -69,7 +69,7 @@ print("number of params: ", sum(p.numel() for p in model.parameters()))
 def train(steps=1000, n_samples=128, report_every=100, cb=None):
     model.train()
     for step in range(steps):
-        x = target_dist.sample(n_samples)
+        x = sample_target(n_samples)
 
         _, log_det, base_logprob = model.inverse(x)
         logprob = log_det + base_logprob
@@ -92,7 +92,7 @@ train()
 # %%
 model.eval()
 
-target_samples = target_dist.sample(128)
+target_samples = sample_target(128)
 zs, *_ = model.inverse(target_samples)
 target_samples = target_samples.detach().numpy()
 z_last = zs[-1].detach().numpy()
@@ -127,7 +127,7 @@ in_circle = np.sqrt((xy ** 2).sum(axis=-1)) <= 3
 xy = xy.reshape((n_grid * n_grid, 2))
 xy = torch.from_numpy(xy.astype("float32"))
 
-x_val = target_dist.sample(128 * 5)
+x_val = sample_target(128 * 5)
 
 zs, *_ = model.forward(xy)
 
