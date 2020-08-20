@@ -37,18 +37,12 @@ train_loader, test_loader = [
 
 # %%
 mnf_lenet = models.MNFLeNet(
-    use_z=True,  # Whether to use auxiliary random variable z ~ q(z) to increase
-    # expressivity of weight posteriors q(W|z).
-    n_flows_q=2,
-    n_flows_r=2,
-    learn_p=False,
-    max_std=1,  # Maximum stddev for layer weights. Larger values clipped at call time.
     flow_h_sizes=[50],  # Size and count of layers to use in the auxiliary rv flow.
     std_init=1,  # Scaling factor for stddev of unit Gaussian initialized params.
 )
 mnf_lenet.step = 0
 
-mnf_adam = torch.optim.Adam(mnf_lenet.parameters(), lr=1e-3)
+mnf_adam = torch.optim.Adam(mnf_lenet.parameters(), lr=3e-4)
 print(f"MNFLeNet param count: {sum(p.numel() for p in mnf_lenet.parameters()):,}")
 
 writer = SummaryWriter(ROOT + f"/runs/mnf_lenet/{datetime.now():%m.%d-%H:%M:%S}")
