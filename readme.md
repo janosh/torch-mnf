@@ -1,8 +1,15 @@
 # Torch MNF
 
-PyTorch implementation of Multiplicative Normalizing Flows.
+PyTorch implementation of Multiplicative Normalizing Flows [[1]](#mnf-bnn).
 
 With flow implementations courtesy of [Andrej Karpathy](https://github.com/karpathy/pytorch-normalizing-flows).
+
+## Files of Interest
+
+- [`notebooks/mnf_mnist.py`](torch_mnf/notebooks/mnf_mnist.py)
+- [`models/mnf_lenet.py`](torch_mnf/models/mnf_lenet.py)
+- [`flows/*.py`](torch_mnf/flows)
+- [`layers/*.py`](torch_mnf/layers)
 
 ## References
 
