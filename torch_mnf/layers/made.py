@@ -13,18 +13,18 @@ from torch import nn
 class MaskedLinear(nn.Linear):
     """A dense layer with a configurable mask on the weights."""
 
-    def __init__(self, in_features, out_features, bias=True):
-        super().__init__(in_features, out_features, bias)
-        self.register_buffer("mask", torch.ones(out_features, in_features))
+    def __init__(self, n_in, n_out, bias=True):
+        super().__init__(n_in, n_out, bias)
+        self.register_buffer("mask", torch.ones(n_in, n_out))
 
     def set_mask(self, mask):
-        self.mask.data.copy_(torch.from_numpy(mask.astype(np.uint8).T))
+        self.mask.data.copy_(torch.from_numpy(mask))
 
     def forward(self, x):
-        return F.linear(x, self.mask * self.weight, self.bias)
+        return F.linear(x, self.mask.T * self.weight, self.bias)
 
 
-class MADE(nn.Module):
+class MADE(nn.Sequential):
     def __init__(self, n_in, hidden_sizes, n_out, num_masks=1, natural_ordering=False):
         """
         n_in (int): number of inputs
@@ -37,7 +37,6 @@ class MADE(nn.Module):
         natural_ordering: retain ordering of inputs, don't use random permutations
         """
         assert n_out % n_in == 0, "n_out must be integer multiple of n_in"
-        super().__init__()
         self.n_in = n_in
         self.n_out = n_out
         self.hidden_sizes = hidden_sizes
@@ -47,8 +46,7 @@ class MADE(nn.Module):
         hs = [n_in] + hidden_sizes + [n_out]
         for h0, h1 in zip(hs, hs[1:]):
             layers.extend([MaskedLinear(h0, h1), nn.ReLU()])
-        layers.pop()  # pop the last ReLU to get a linear output layer
-        self.net = nn.Sequential(*layers)
+        super().__init__(*layers[:-1])  # drop last ReLU)
 
         # seeds for orders/connectivities of the model ensemble
         self.natural_ordering = natural_ordering
@@ -63,7 +61,6 @@ class MADE(nn.Module):
     def update_masks(self):
         if self.m and self.num_masks == 1:
             return  # only a single seed, skip for efficiency
-        n_layers = len(self.hidden_sizes)
 
         # fetch the next seed and construct a random stream
         rng = np.random.RandomState(self.seed)
@@ -75,14 +72,13 @@ class MADE(nn.Module):
             if self.natural_ordering
             else rng.permutation(self.n_in)
         )
-        for lyr in range(n_layers):
+        for lyr, size in enumerate(self.hidden_sizes):
             # Use minimum connectivity of previous layer as lower bound when sampling
             # values for m_l(k) to avoid unconnected units. See comment after eq. (13).
-            self.m[lyr] = rng.randint(
-                self.m[lyr - 1].min(), self.n_in - 1, size=self.hidden_sizes[lyr]
-            )
+            self.m[lyr] = rng.randint(self.m[lyr - 1].min(), self.n_in - 1, size=size)
 
         # construct the mask matrices
+        n_layers = len(self.hidden_sizes)
         masks = [
             self.m[lyr - 1][:, None] <= self.m[lyr][None, :] for lyr in range(n_layers)
         ]
@@ -95,9 +91,6 @@ class MADE(nn.Module):
             masks[-1] = np.concatenate([masks[-1]] * k, axis=1)
 
         # set the masks in all MaskedLinear layers
-        layers = [lyr for lyr in self.net.modules() if isinstance(lyr, MaskedLinear)]
-        for lyr, m in zip(layers, masks):
+        masked_layers = [lyr for lyr in self if isinstance(lyr, MaskedLinear)]
+        for lyr, m in zip(masked_layers, masks):
             lyr.set_mask(m)
-
-    def forward(self, x):
-        return self.net(x)

@@ -1,15 +1,18 @@
+import os
 import pickle
 
 import numpy as np
 import torch
 from sklearn.datasets import make_moons
 
+ROOT = os.getcwd().split("/torch_mnf", 1)[0]
+
 
 def sample_siggraph(n_samples):
     """Taken from https://blog.evjang.com/2018/01/nf2.html.
     https://github.com/ericjang/normalizing-flows-tutorial/blob/master/siggraph.pkl
     """
-    with open("../data/siggraph.pkl", "rb") as file:
+    with open(ROOT + "/data/siggraph.pkl", "rb") as file:
         XY = np.array(pickle.load(file), dtype="float32")
         XY -= np.mean(XY, axis=0)  # center
     XY = torch.from_numpy(XY)

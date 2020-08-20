@@ -33,10 +33,10 @@ base = MultivariateNormal(torch.zeros(2), torch.eye(2))
 # flows.append(nf.AffineConstantFlow(dim=2, shift=False))
 
 # ### MAF (with MADE net, so we get very fast density estimation)
-flows = [nf.MAF(dim=2, parity=i % 2) for i in range(9)]
+# flows = [nf.MAF(dim=2, parity=i % 2) for i in range(9)]
 
 # ### IAF (with MADE net, so we get very fast sampling)
-# flows = [nf.IAF(dim=2, parity=i % 2) for i in range(4)]
+flows = [nf.IAF(dim=2, parity=i % 2) for i in range(9)]
 
 # ### insert ActNormFlows to any of the flows above
 # norms = [nf.ActNormFlow(dim=2) for _ in flows]
@@ -68,7 +68,7 @@ print("number of params: ", sum(p.numel() for p in model.parameters()))
 
 def train(steps=1000, n_samples=128, report_every=100, cb=None):
     model.train()
-    for step in range(steps):
+    for step in range(steps + 1):
         x = sample_target_dist(n_samples)
 
         _, log_det = model.inverse(x)
@@ -207,5 +207,3 @@ def plot_learning():
 
 # %%
 train(steps=400, cb=plot_learning)
-
-# %%
