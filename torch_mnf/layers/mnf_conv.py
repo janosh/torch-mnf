@@ -10,8 +10,7 @@ class MNFConv2d(nn.Module):
     """Bayesian 2D convolutional layer with weight posterior modeled by diagonal
     covariance Gaussian. To increase expressiveness and allow for multimodality and
     non-zero covariance between weights, the Gaussian means depend on an auxiliary
-    random variable z modelled by a normalizing flow. The flows base distribution is a
-    standard normal.
+    random variable z modelled by a normalizing flow with Gaussian base distribution.
 
     From "Multiplicative Normalizing Flows for Variational Bayesian Neural Networks",
     Christos Louizos, Max Welling (Jun 2017) https://arxiv.org/abs/1703.01961
@@ -31,82 +30,67 @@ class MNFConv2d(nn.Module):
         std_init=1,
         **kwargs,
     ):
-        super().__init__(**kwargs)
-        self.in_channels = in_channels
-        self.out_channels = out_channels
+        """
+        Args:
+            n_in (int): number of input channels
+            n_out (int): number of output channels
+            kernel_size (int): side length of square kernel
+            n_flows_q (int, optional): length of q-flow.
+            n_flows_r (int, optional): length of r-flow.
+            h_sizes (list[int], optional): Number of layers and their node count
+                in each hidden layer of both the q and r flow.
+        """
+        super().__init__()
 
-        n_rows = n_cols = kernel_size
-        self.input_dim = in_channels * n_cols * n_rows
+        # weight shape: in_channels, out_channels, kernel_rows, kernel_cols
+        W_shape = [n_out, n_in, kernel_size, kernel_size]
 
-        mean_init = -9
-        W_shape = (out_channels, in_channels, n_rows, n_cols)
-        self.mean_W = nn.Parameter(torch.randn(W_shape))
-        self.log_std_W = nn.Parameter(torch.randn(W_shape) * std_init + mean_init)
-        self.mean_b = nn.Parameter(torch.zeros(out_channels))
-        self.log_var_b = nn.Parameter(torch.randn(out_channels) * std_init + mean_init)
+        self.W_mean = nn.Parameter(0.1 * torch.randn(W_shape))
+        self.W_log_var = nn.Parameter(-9 + 0.1 * torch.randn(W_shape))
+        self.b_mean = torch.zeros(n_out)
+        self.b_log_var = nn.Parameter(-9 + 0.1 * torch.randn(n_out))
 
         # q_0(z) is the flow's base distribution for the auxiliary random variable z
         # that's used to increase expressivity of the network weight posterior q(W|z).
-        self.q0_mean = nn.Parameter(
-            torch.randn(out_channels) + (0 if n_flows_q > 0 else 1)
-        )
+        self.q0_mean = nn.Parameter(0.1 * torch.randn(n_out))
         # q0_mean has a similar function to a dropout rate as it determines the mean of
         # the multiplicative noise z_k in eq. 5 of the MNF paper.
-        self.q0_log_var = nn.Parameter(torch.randn(out_channels) * std_init + mean_init)
+        self.q0_log_var = nn.Parameter(-9 + 0.1 * torch.randn(n_out))
+        # auxiliary variables c, b1, b2 defined in eqs. (11), (12)
+        self.r0_c = nn.Parameter(0.1 * torch.randn(n_out))
+        self.r0_b1 = nn.Parameter(0.1 * torch.randn(n_out))
+        self.r0_b2 = nn.Parameter(0.1 * torch.randn(n_out))
 
-        self.r0_mean = nn.Parameter(torch.randn(out_channels))
-        self.r0_log_var = nn.Parameter(torch.randn(out_channels))
-        self.r0_apvar = nn.Parameter(torch.randn(out_channels))
+        # fl.AffineHalfFlow(n_out, parity=i % 2, h_sizes=h_sizes)
+        q_flows = [fl.RNVP(n_out, h_sizes=h_sizes) for _ in range(n_flows_q)]
+        self.flow_q = fl.NormalizingFlow(q_flows)
 
-        self.prior_var_r_p = nn.Parameter(
-            torch.randn(self.input_dim) * std_init + np.log(prior_var_w),
-            requires_grad=learn_p,
-        )
-        self.prior_var_r_p_bias = nn.Parameter(
-            torch.randn([]) * std_init + np.log(prior_var_b), requires_grad=learn_p,
-        )
+        # fl.AffineHalfFlow(n_out, parity=i % 2, h_sizes=h_sizes)
+        r_flows = [fl.RNVP(n_out, h_sizes=h_sizes) for _ in range(n_flows_r)]
+        self.flow_r = fl.NormalizingFlow(r_flows)
 
-        r_flows = [
-            IAF(dim=out_channels, parity=i % 2, h_sizes=flow_h_sizes)
-            for i in range(n_flows_r)
-        ]
-        self.flow_r = NormalizingFlow(r_flows)
+    def forward(self, x):  # see algorithm 2 in MNF paper
+        z, _ = self.sample_z()
+        W_var = self.W_log_var.exp()
+        b_var = self.b_log_var.exp()
 
-        q_flows = [
-            IAF(dim=out_channels, parity=i % 2, h_sizes=flow_h_sizes)
-            for i in range(n_flows_q)
-        ]
-        self.flow_q = NormalizingFlow(q_flows)
+        W_mean = self.W_mean * z.view(-1, 1, 1, 1)
 
-    def forward(self, x):
-        z_samples, _ = self.sample_z(x.size(0))
-        mean, var = self.get_mean_var(x)
+        mean = F.conv2d(x, weight=W_mean, bias=self.b_mean)
+        var = F.conv2d(x ** 2, weight=W_var, bias=b_var)
+        epsilon = torch.randn_like(var)
 
-        mu_out = mean * z_samples[..., None, None]  # add singleton dims
-        epsilon = torch.randn(mu_out.shape)
-        sigma_out = var.sqrt() * epsilon
+        return mean + var.sqrt() * epsilon
 
-        return mu_out + sigma_out
-
-    def sample_z(self, batch_size):
-        epsilon = torch.randn(batch_size, self.out_channels)
-        q0_mean = self.q0_mean.repeat(batch_size, 1)
+    def sample_z(self):
         q0_std = self.q0_log_var.exp().sqrt()
-        z_samples = q0_mean + q0_std * epsilon
+        epsilon_z = torch.randn_like(q0_std)
+        z = self.q0_mean + q0_std * epsilon_z
 
-        z_samples, log_dets = self.flow_q.forward(z_samples)
+        zs, log_dets = self.flow_q.forward(z[None, ...])
 
-        # discard intermediate transformations, only return the final result
-        return z_samples[-1], log_dets
-
-    def get_mean_var(self, x):
-        var_w = self.log_std_W.exp() ** 2
-        var_b = self.log_var_b.exp()
-
-        # Perform cross-correlation.
-        mean_W_out = F.conv2d(x, weight=self.mean_W)
-        var_w_out = F.conv2d(x ** 2, weight=var_w)
-        return mean_W_out + self.mean_b.view(-1, 1, 1), var_w_out + var_b.view(-1, 1, 1)
+        # discard intermediate flow transformations, only return the final RVs
+        return zs[-1], log_dets.squeeze()
 
     def kl_div(self):
         z_sample, log_det_q = self.sample_z(1)
@@ -131,31 +115,39 @@ class MNFConv2d(nn.Module):
             - 1
         )
 
-        # Compute entropy of the initial distribution q(z_0).
-        # This is independent of the actual sample z_0.
-        log_q = -log_det_q.squeeze() - 0.5 * torch.sum(
-            np.log(2 * np.pi) + self.q0_log_var + 1
-        )
+        W_var = self.W_log_var.exp()
+        b_var = self.b_log_var.exp()
+        W_mean = self.W_mean * z.view(-1, 1, 1, 1)
+        b_mean = self.b_mean * z
 
-        z_sample, log_det_r = self.flow_r.forward(z_sample)
+        kl_div_W = 0.5 * torch.sum(-W_var.log() + W_var + W_mean ** 2 - 1)
+        kl_div_b = 0.5 * torch.sum(-b_var.log() + b_var + b_mean ** 2 - 1)
 
-        mean_w = Mtilde @ self.r0_apvar
-        var_w = Vtilde @ self.r0_apvar ** 2
-        epsilon = torch.randn(self.input_dim)
+        # log_q_z0 = entropy of the initial distribution q(z_0). For a Gaussian, this is
+        # 1/2 ln(2 pi e sigma^2) but we drop the constant offset of 1/2 ln(2 pi e) and
+        # just compute ln(sigma).
+        log_q_z0 = 0.5 * self.q0_log_var.sum()
+        log_q = -log_det_q - log_q_z0
+
+        W_mean = W_mean.view(-1, len(self.r0_c)) @ self.r0_c  # eq. (11)
+        W_var = W_var.view(-1, len(self.r0_c)) @ self.r0_c  # eq. (12)
+        epsilon_w = torch.randn_like(W_var)
         # For convolutional layers, linear mappings empirically work better than
         # tanh non-linearity. Hence the removal of a = tf.tanh(a). Christos Louizos
         # confirmed this in https://github.com/AMLab-Amsterdam/MNF_VBNN/issues/4
         # even though the paper states the use of tanh in conv layers.
-        a = mean_w + var_w.sqrt() * epsilon
-        # a = tf.tanh(a)
-        mu_b = torch.sum(mean_b * self.r0_apvar)
-        var_b = torch.sum(torch.exp(self.log_var_b) * self.r0_apvar ** 2)
-        a += mu_b + var_b.sqrt() * torch.randn([])
-        # a = tf.tanh(a)
+        act = W_mean + W_var.sqrt() * epsilon_w
+
+        b_mean = torch.sum(b_mean * self.r0_c)
+        b_var = torch.sum(self.b_log_var.exp() * self.r0_c ** 2)
+        epsilon_b = torch.randn([])
+        act += b_mean + b_var.sqrt() * epsilon_b
 
         # Mean and log variance of the auxiliary normal dist. r(z_T_b|W) in eq. 8.
-        mean_r = torch.tensordot(a, self.r0_mean, dims=0).mean(0)
-        log_var_r = torch.tensordot(a, self.r0_log_var, dims=0).mean(0)
+        mean_r = self.r0_b1.ger(act).mean(1)
+        log_var_r = self.r0_b2.ger(act).mean(1)
+
+        zs, log_det_r = self.flow_r.forward(z)
 
         # Log likelihood of a zero-covariance normal dist: ln N(x | mu, sigma) =
         # -1/2 sum_dims(ln(2 pi) + ln(sigma^2) + (x - mu)^2 / sigma^2)
@@ -165,4 +157,4 @@ class MNFConv2d(nn.Module):
             + log_var_r
         )
 
-        return kl_div_w + kl_div_b - log_r + log_q
+        return kl_div_W + kl_div_b + log_q - log_r
