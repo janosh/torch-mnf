@@ -28,3 +28,24 @@ With flow implementations courtesy of [Andrej Karpathy](https://github.com/karpa
 7. <a id="iaf"></a> **IAF**: _Improving Variational Inference with Inverse Autoregressive Flow_ | Diederik Kingma et al. (Jun 2016) | [1606.04934](https://arxiv.org/abs/1606.04934)
 
 8. <a id="nsf"></a> **NSF**: _Neural Spline Flows_ | Conor Durkan, Artur Bekasov, Iain Murray, George Papamakarios (Jun 2019) | [1906.04032](https://arxiv.org/abs/1906.04032)
+
+## Debugging Tips
+
+A great method of checking for infinite or `NaN` gradients is
+
+```py
+for name, param in model.named_parameters():
+    print(name, torch.isfinite(param.grad).all())
+    print(name, torch.isnan(param.grad).any())
+```
+
+There's also [`torch.autograd.detect_anomaly()`](https://pytorch.org/docs/stable/autograd.html#torch.autograd.detect_anomaly) used as context manager:
+
+```py
+with torch.autograd.detect_anomaly():
+    x = torch.rand(10, 10, requires_grad=True)
+    out = model(x)
+    out.backward()
+```
+
+and [`torch.autograd.set_detect_anomaly(True)`](https://pytorch.org/docs/stable/autograd.html#torch.autograd.set_detect_anomaly). See [here](https://discuss.pytorch.org/t/87594) for an issue that used these tools.
