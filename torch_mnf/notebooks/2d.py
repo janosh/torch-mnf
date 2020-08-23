@@ -56,7 +56,7 @@ flows = [nf.AffineHalfFlow(dim=2, parity=i % 2) for i in range(9)]
 
 
 # %% -- Neural Spline Flow --
-flows = [nf.NSF_CL(dim=2, K=8, B=3, hidden_dim=16) for _ in range(3)]
+flows = [nf.NSF_CL(dim=2, K=8, B=3, n_h=16) for _ in range(3)]
 # prepend each NSF flow with ActNormFlow and Glow
 for idx in reversed(range(len(flows))):
     flows.insert(idx, nf.ActNormFlow(dim=2))

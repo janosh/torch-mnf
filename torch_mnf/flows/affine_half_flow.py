@@ -30,9 +30,9 @@ class AffineHalfFlow(nn.Module):
         self.parity = parity
         self.s_net = self.t_net = lambda x: x.new_zeros(x.size(0), dim // 2)
         if scale:
-            self.s_net = net_class(dim // 2, dim // 2, nh)
+            self.s_net = net_class(dim // 2, nh, nh, nh, dim // 2)
         if shift:
-            self.t_net = net_class(dim // 2, dim // 2, nh)
+            self.t_net = net_class(dim // 2, nh, nh, nh, dim // 2)
 
     def forward(self, z, inverse=False):
         z0, z1 = z.chunk(2, dim=1)

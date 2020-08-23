@@ -182,7 +182,7 @@ def RQS(
 class NSF_AR(nn.Module):
     """Neural spline flow, coupling layer, [Durkan et al. 2019]"""
 
-    def __init__(self, dim, K=5, B=3, hidden_dim=8, base_network=MLP):
+    def __init__(self, dim, K=5, B=3, n_h=8, net_class=MLP):
         super().__init__()
         self.dim = dim
         self.K = K
@@ -190,7 +190,7 @@ class NSF_AR(nn.Module):
         self.layers = nn.ModuleList()
         self.init_param = nn.Parameter(torch.Tensor(3 * K - 1))
         for i in range(1, dim):
-            self.layers += [base_network(i, 3 * K - 1, hidden_dim)]
+            self.layers += [net_class(i, n_h, n_h, n_h, 3 * K - 1)]
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -238,13 +238,13 @@ class NSF_AR(nn.Module):
 class NSF_CL(nn.Module):
     """Neural spline flow, coupling layer, [Durkan et al. 2019]"""
 
-    def __init__(self, dim, K=5, B=3, hidden_dim=8, base_network=MLP):
+    def __init__(self, dim, K=5, B=3, n_h=8, net_class=MLP):
         super().__init__()
         self.dim = dim
         self.K = K
         self.B = B
-        self.f1 = base_network(dim // 2, (3 * K - 1) * dim // 2, hidden_dim)
-        self.f2 = base_network(dim // 2, (3 * K - 1) * dim // 2, hidden_dim)
+        self.f1 = net_class(dim // 2, n_h, n_h, n_h, (3 * K - 1) * dim // 2)
+        self.f2 = net_class(dim // 2, n_h, n_h, n_h, (3 * K - 1) * dim // 2)
 
     def forward(self, z):
         log_det = torch.zeros(z.shape[0])
