@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from ..flows import IAF, NormalizingFlow
+from .. import flows as fl
 
 
 class MNFConv2d(nn.Module):
