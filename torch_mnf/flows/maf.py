@@ -6,7 +6,6 @@ https://arxiv.org/abs/1705.07057
 "The advantage of Real NVP compared to MAF and IAF is that it can both generate data
 and estimate densities with one forward pass only, whereas MAF would need D passes
 to generate data and IAF would need D passes to estimate densities."
-(MAF)
 """
 
 import torch

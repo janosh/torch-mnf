@@ -1,0 +1,41 @@
+name: Tests
+
+on:
+  push:
+    paths:
+      - '**.py' # only run workflow when source files changed
+  pull_request:
+    paths:
+      - '**.py'
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Set up latest Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+          # 3.9 not supported by latest PyTorch 1.7
+          # https://github.com/pytorch/pytorch/issues/47354
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          pip install -r requirements.txt
+          pip install .
+
+      - name: Lint with flake8
+        # Adapted from https://git.io/JUfPw
+        run: |
+          # stop the run to save budget if there are syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings
+          flake8 . --count --exit-zero --max-complexity=10 --statistics
+
+      - name: Run Tests
+        run: |
+          python -m pytest

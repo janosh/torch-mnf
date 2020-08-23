@@ -1,0 +1,10 @@
+flake8
+matplotlib
+numpy
+pandas
+pytest
+seaborn
+scikit-learn
+scipy
+torch
+torchvision

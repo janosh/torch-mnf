@@ -1,4 +1,4 @@
-# Torch MNF
+# Torch MNF &nbsp; [![Test Status](https://github.com/janosh/torch-mnf/workflows/tests/badge.svg)](https://github.com/janosh/torch-mnf/actions)
 
 PyTorch implementation of Multiplicative Normalizing Flows [[1]](#mnf-bnn).
 

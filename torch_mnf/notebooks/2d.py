@@ -71,7 +71,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
 print(f"number of params: {sum(p.numel() for p in model.parameters()):,}")
 
 
-def train(steps=1000, n_samples=128, report_every=100, cb=None):
+def train_flow(steps=1000, n_samples=128, report_every=100, cb=None):
     for step in range(steps + 1):
         x = sample_target_dist(n_samples)
 
@@ -91,7 +91,7 @@ def train(steps=1000, n_samples=128, report_every=100, cb=None):
 
 
 # %%
-train()
+train_flow()
 
 
 # %%
@@ -202,4 +202,4 @@ def plot_learning():
 
 
 # %%
-train(steps=400, cb=plot_learning)
+train_flow(steps=400, cb=plot_learning)

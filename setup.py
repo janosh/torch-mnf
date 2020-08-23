@@ -1,10 +1,8 @@
-# Install this package via `pip install -e .`. Remember to
-# activate correct target environment first. The `-e` option
-# (development mode) sometimes installs to the wrong place.
-# See https://github.com/conda/conda/issues/5861 and
-# https://stackoverflow.com/a/49478207. Without the -e option,
-# be advised that a non-editable install requires reinstallation
-# after every edit for changes take effect.
+# After activating correct target environment, install this package
+# via `pip install -e .`. The `-e` option (development mode) sometimes
+# installs to the wrong place. See https://github.com/conda/conda/issues/5861
+# and https://stackoverflow.com/a/49478207. A non-editable install
+# (no -e) requires reinstallation after every edit for changes take effect.
 
 from setuptools import find_namespace_packages, setup
 
