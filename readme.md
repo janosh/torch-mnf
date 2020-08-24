@@ -11,6 +11,38 @@ With flow implementations courtesy of [Andrej Karpathy](https://github.com/karpa
 - [`flows/*.py`](torch_mnf/flows)
 - [`layers/*.py`](torch_mnf/layers)
 
+## Flow Results
+
+### Neural Spline Flow Autoregressive Layer
+
+Flow: `[ActNormFlow, Glow, NSF_AR, ActNormFlow, Glow, NSF_AR, ActNormFlow, Glow, NSF_AR]`
+
+Final loss: 19.13
+
+| Trained for 1400 steps with Adam (`lr=1e-4, wd=1e-5`) | Parameters: 3,012                                       |
+| ----------------------------------------------------- | ------------------------------------------------------- |
+| ![NSF-AR Point Flow](results/nsf_ar/point-flow.png)   | ![NSF-AR x to 2 and z to x](results/nsf_ar/z2x+x2z.png) |
+
+### Neural Spline Flow Coupling Layer
+
+Flow: `[ActNormFlow, Glow, NSF_CL, ActNormFlow, Glow, NSF_CL, ActNormFlow, Glow, NSF_CL]`
+
+Final loss: 6.06
+
+| Trained for 1400 steps with Adam (`lr=1e-4, wd=1e-5`) | Parameters: 5,844                                       |
+| ----------------------------------------------------- | ------------------------------------------------------- |
+| ![NSF-CL Point Flow](results/nsf_cl/point-flow.png)   | ![NSF-CL x to 2 and z to x](results/nsf_cl/z2x+x2z.png) |
+
+### Masked Autoregressive Flow
+
+Flow: `[MAF, MAF, MAF, MAF, MAF, MAF, MAF, MAF, MAF]`
+
+Final loss: 36.21
+
+| Trained for 1400 steps with Adam (`lr=1e-4, wd=1e-5`) | Parameters: 12,348                                |
+| ----------------------------------------------------- | ------------------------------------------------- |
+| ![MAF Point Flow](results/maf/point-flow.png)         | ![MAF x to 2 and z to x](results/maf/z2x+x2z.png) |
+
 ## References
 
 1. <a id="mnf-bnn"></a> **MNF**: _Multiplicative Normalizing Flows for Variational Bayesian Neural Networks_ | Christos Louizos, Max Welling (Mar 2017) | [1703.01961](https://arxiv.org/abs/1703.01961)
