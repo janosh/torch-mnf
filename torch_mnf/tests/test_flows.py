@@ -7,36 +7,37 @@ from torch_mnf import data
 torch.manual_seed(0)  # ensure reproducible results
 
 
-def train(model, optim, samples, steps=50):
+def train(flow_model, optim, samples, steps=70):
     for _ in range(steps):
-        _, log_det = model.inverse(samples)
-        base_log_prob = model.base_log_prob(samples)
+        _, log_det = flow_model.inverse(samples)
+        base_log_prob = flow_model.base_log_prob(samples)
         log_prob = log_det + base_log_prob
-        loss = -torch.sum(log_prob)  # NLL
+        loss = -log_prob.sum()  # NLL
 
-        model.zero_grad()  # reset gradients
+        flow_model.zero_grad()  # reset gradients
         loss.backward()  # compute new gradients
         optim.step()  # update weights
 
-    return loss  # return final loss for e2e tests to discover regresions
+    return loss  # return final loss for e2e tests to discover regressions
 
 
 samples = data.sample_moons(128)
 
 
-# Construct the base distribution for a normalizing flow model.
+# We use the same base distribution for all flow models.
 base = MultivariateNormal(torch.zeros(2), torch.eye(2))
 
 
 def e2e_test_flow_model(flow, loss_bound):
     """End-to-end test ensuring some flow works with NormalizingFlowModel
-    and trains correctly.
+    and training performance did not regress.
     """
     model = nf.NormalizingFlowModel(base, flow)
     adam = torch.optim.Adam(model.parameters())
     loss1 = train(model, adam, samples, steps=1)
     loss2 = train(model, adam, samples)
     assert loss1 > loss2
+    print(f"bound - loss = {loss_bound - loss2:.4g}")
     assert loss2 < loss_bound
 
 
@@ -73,7 +74,7 @@ def test_glow_with_actnorm():
     # prepend each Glow (1x1 convolution) with ActNormFlow
     for idx in reversed(range(len(flow))):
         flow.insert(idx, nf.ActNormFlow(dim=2))
-    e2e_test_flow_model(flow, 243)
+    e2e_test_flow_model(flow, 246)
 
 
 def test_nsfcl():
