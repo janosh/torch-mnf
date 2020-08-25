@@ -13,25 +13,15 @@ With flow implementations courtesy of [Andrej Karpathy](https://github.com/karpa
 
 ## Flow Results
 
-### Neural Spline Flow Autoregressive Layer
+### Real Non-Volume Preserving Flows
 
-Flow: `[ActNormFlow, Glow, NSF_AR, ActNormFlow, Glow, NSF_AR, ActNormFlow, Glow, NSF_AR]`
+Flow: `[RNVP, RNVP, RNVP, RNVP, RNVP, RNVP, RNVP, RNVP, RNVP]`
 
-Final loss: 19.13
+Final loss: 0.47
 
-| Trained for 1400 steps with Adam (`lr=1e-4, wd=1e-5`) | Parameters: 3,012                                       |
-| ----------------------------------------------------- | ------------------------------------------------------- |
-| ![NSF-AR Point Flow](results/nsf_ar/point-flow.png)   | ![NSF-AR x to 2 and z to x](results/nsf_ar/z2x+x2z.png) |
-
-### Neural Spline Flow Coupling Layer
-
-Flow: `[ActNormFlow, Glow, NSF_CL, ActNormFlow, Glow, NSF_CL, ActNormFlow, Glow, NSF_CL]`
-
-Final loss: 6.06
-
-| Trained for 1400 steps with Adam (`lr=1e-4, wd=1e-5`) | Parameters: 5,844                                       |
-| ----------------------------------------------------- | ------------------------------------------------------- |
-| ![NSF-CL Point Flow](results/nsf_cl/point-flow.png)   | ![NSF-CL x to 2 and z to x](results/nsf_cl/z2x+x2z.png) |
+| Trained for 1400 steps with Adam (`lr=1e-4, wd=1e-5`) | Parameters: 22,914                                        |
+| ----------------------------------------------------- | --------------------------------------------------------- |
+| ![RNVP Point Flow](results/rnvp/moons/point-flow.png) | ![RNVP x to 2 and z to x](results/rnvp/moons/z2x+x2z.png) |
 
 ### Masked Autoregressive Flow
 
@@ -39,9 +29,29 @@ Flow: `[MAF, MAF, MAF, MAF, MAF, MAF, MAF, MAF, MAF]`
 
 Final loss: 36.21
 
-| Trained for 1400 steps with Adam (`lr=1e-4, wd=1e-5`) | Parameters: 12,348                                |
-| ----------------------------------------------------- | ------------------------------------------------- |
-| ![MAF Point Flow](results/maf/point-flow.png)         | ![MAF x to 2 and z to x](results/maf/z2x+x2z.png) |
+| Trained for 1400 steps with Adam (`lr=1e-4, wd=1e-5`) | Parameters: 12,348                                      |
+| ----------------------------------------------------- | ------------------------------------------------------- |
+| ![MAF Point Flow](results/maf/moons/point-flow.png)   | ![MAF x to 2 and z to x](results/maf/moons/z2x+x2z.png) |
+
+### Neural Spline Flow Autoregressive Layer
+
+Flow: `[ActNormFlow, Glow, NSF_AR, ActNormFlow, Glow, NSF_AR, ActNormFlow, Glow, NSF_AR]`
+
+Final loss: 19.13
+
+| Trained for 1400 steps with Adam (`lr=1e-4, wd=1e-5`)     | Parameters: 3,012                                             |
+| --------------------------------------------------------- | ------------------------------------------------------------- |
+| ![NSF-AR Point Flow](results/nsf_ar/moons/point-flow.png) | ![NSF-AR x to 2 and z to x](results/nsf_ar/moons/z2x+x2z.png) |
+
+### Neural Spline Flow Coupling Layer
+
+Flow: `[ActNormFlow, Glow, NSF_CL, ActNormFlow, Glow, NSF_CL, ActNormFlow, Glow, NSF_CL]`
+
+Final loss: 6.06
+
+| Trained for 1400 steps with Adam (`lr=1e-4, wd=1e-5`)     | Parameters: 5,844                                             |
+| --------------------------------------------------------- | ------------------------------------------------------------- |
+| ![NSF-CL Point Flow](results/nsf_cl/moons/point-flow.png) | ![NSF-CL x to 2 and z to x](results/nsf_cl/moons/z2x+x2z.png) |
 
 ## References
 
