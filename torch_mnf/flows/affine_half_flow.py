@@ -44,13 +44,13 @@ class AffineHalfFlow(nn.Module):
         if inverse:
             s, t = -s, -t  # change sign of s here to get the right log_det below
             # what's called x1 is really z1 and vice versa since we're doing the inverse
-            x1 = (z1 + t) * torch.exp(s)
+            x1 = (z1 + t) * s.exp()
         else:
-            x1 = torch.exp(s) * z1 + t
+            x1 = s.exp() * z1 + t
         if self.parity:
             x0, x1 = x1, x0
         x = torch.cat([x0, x1], dim=1)
-        log_det = torch.sum(s, dim=1)
+        log_det = s.sum(1)
         return x, log_det
 
     def inverse(self, x):

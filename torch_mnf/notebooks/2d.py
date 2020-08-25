@@ -14,8 +14,6 @@ from torch_mnf.data import ROOT
 torch.manual_seed(0)  # ensure reproducible results
 
 sample_target_dist = data.sample_moons
-# sample_target_dist = data.sample_siggraph
-# sample_target_dist = data.sample_gaussian_mixture
 samples = sample_target_dist(256)
 plt.title("target distribution")
 plt.scatter(*samples.T, s=10)
@@ -78,6 +76,7 @@ SAVE_TO = f"{ROOT}/results/maf/"
 
 
 # %%
+# If loss turns NaN late during training, try decreasing batch size (n_samples)
 def train_flow(steps=1000, n_samples=128, report_every=100, cb=None):
     losses = []
     model.step += steps
