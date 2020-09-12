@@ -18,21 +18,21 @@ class Glow(nn.Module):
         self.U = nn.Parameter(torch.triu(U, diagonal=1))
 
     def _assemble_W(self):
-        """assemble W from its pieces (P, L, U, S)"""
+        """Assemble W from its pieces (P, L, U, S)"""
         L = torch.tril(self.L, diagonal=-1) + torch.eye(len(self.L))
         U = torch.triu(self.U, diagonal=1)
-        W = self.P @ L @ (U + torch.diag(self.S))
+        W = self.P @ L @ (U + self.S.diag())
         return W
 
     def forward(self, z):
         W = self._assemble_W()
         x = z @ W
-        log_det = torch.sum(torch.log(torch.abs(self.S)))
+        log_det = self.S.abs().log().sum()
         return x, log_det
 
     def inverse(self, x):
         W = self._assemble_W()
         W_inv = torch.inverse(W)
         z = x @ W_inv
-        log_det = -torch.sum(torch.log(torch.abs(self.S)))
+        log_det = -self.S.abs().log().sum()
         return z, log_det
