@@ -91,3 +91,7 @@ with torch.autograd.detect_anomaly():
 ```
 
 and [`torch.autograd.set_detect_anomaly(True)`](https://pytorch.org/docs/stable/autograd.html#torch.autograd.set_detect_anomaly). See [here](https://discuss.pytorch.org/t/87594) for an issue that used these tools.
+
+## Requirements
+
+[`requirements.txt`](requirements.txt) created with [`pipreqs .`](https://github.com/bndr/pipreqs). Find new dependencies manually with `pipreqs --diff requirements.txt`.

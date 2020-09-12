@@ -1,10 +1,11 @@
-flake8
 matplotlib
 numpy
 pandas
-pytest
-seaborn
 scikit-learn
 scipy
+seaborn
 torch
 torchvision
+# dev dependencies
+flake8
+pytest
