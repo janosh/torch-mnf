@@ -43,8 +43,8 @@ flows = [nf.AffineHalfFlow(dim=2, parity=i % 2) for i in range(9)]
 # flows = [nf.IAF(dim=2, parity=i % 2) for i in range(9)]
 
 
-# # %% -- ActNorm --
-# # prepend ActNormFlows to every layer in any of the flows above
+# %% -- ActNorm --
+# prepend ActNormFlows to every layer in any of the flows above
 # for idx in reversed(range(len(flows))):
 #     flows.insert(idx, nf.ActNormFlow(dim=2))
 
@@ -58,11 +58,11 @@ flows = [nf.AffineHalfFlow(dim=2, parity=i % 2) for i in range(9)]
 
 
 # %% -- Neural Spline Flow --
-flows = [nf.NSF_CL(dim=2, K=8, B=3, n_h=16) for _ in range(3)]
-# prepend each NSF flow with ActNormFlow and Glow
-for idx in reversed(range(len(flows))):
-    flows.insert(idx, nf.ActNormFlow(dim=2))
-    flows.insert(idx + 1, nf.Glow(dim=2))
+# flows = [nf.NSF_AR(dim=2, K=8, B=3, n_h=16) for _ in range(3)]
+# # prepend each NSF flow with ActNormFlow and Glow
+# for idx in reversed(range(len(flows))):
+#     flows.insert(idx, nf.ActNormFlow(dim=2))
+#     flows.insert(idx + 1, nf.Glow(dim=2))
 
 
 # %%
@@ -72,7 +72,7 @@ model.step = 0
 # TODO: tune WD
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
 print(f"number of params: {sum(p.numel() for p in model.parameters()):,}")
-SAVE_TO = f"{ROOT}/results/maf/"
+SAVE_TO = f"{ROOT}/results/rnvp/{sample_target_dist.__name__.replace('sample_', '')}/"
 
 
 # %%
@@ -87,24 +87,25 @@ def train_flow(steps=1000, n_samples=128, report_every=100, cb=None):
         _, log_det = model.inverse(x)
         base_log_prob = model.base_log_prob(x)
         log_prob = log_det + base_log_prob
-        loss = -torch.sum(log_prob)  # NLL
+        loss = -torch.sum(log_prob) / n_samples  # NLL
 
         model.zero_grad()  # reset gradients
         loss.backward()  # compute new gradients
         optimizer.step()  # update weights
 
         if step % report_every == 0:
-            losses.append([step, loss])
-            pbar.set_postfix(loss=f"{loss:.4g}")
+            losses.append(loss)
+            pbar.set_postfix(loss=f"{loss:.4}")
             if callable(cb):
                 cb()
 
-    plt.plot(*list(zip(*losses)))
+    plt.plot(losses)
     return losses
 
 
 # %%
-train_flow()
+# with torch.autograd.detect_anomaly():
+train_flow(steps=3000, n_samples=64)
 
 
 # %%
@@ -223,10 +224,10 @@ losses = train_flow(steps=400, cb=plot_learning)
 # %%
 # Save model state for later restoring with `checkpoint = torch.load(PATH)`.
 # See https://pytorch.org/tutorials/beginner/saving_loading_models#save.
-check_pt = {
-    "step": model.step,
-    "model_state_dict": model.state_dict(),
-    "optimizer_state_dict": optimizer.state_dict(),
-    "loss": losses[-1][1],
-}
-torch.save(check_pt, SAVE_TO + "checkpoint.pt")
+# check_pt = {
+#     "step": model.step,
+#     "model_state_dict": model.state_dict(),
+#     "optimizer_state_dict": optimizer.state_dict(),
+#     "loss": losses[-1],
+# }
+# torch.save(check_pt, SAVE_TO + "checkpoint.pt")
