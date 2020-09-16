@@ -34,4 +34,4 @@ def rot_img(pred_fn, img, plot_type="violin", axes=[1, 2]):
         ax2.axis("off")
         ax2.imshow(img_rot.squeeze(), cmap="gray")
 
-    plt.tight_layout()  # needed to keep titles clear of above subplots
+    plt.tight_layout()  # keeps titles clear of above subplots

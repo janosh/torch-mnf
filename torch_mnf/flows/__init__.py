@@ -22,6 +22,7 @@ from .affine_constant_flow import ActNormFlow, AffineConstantFlow
 from .affine_half_flow import AffineHalfFlow
 from .glow import Glow
 from .maf import IAF, MAF
+from .rnvp import RNVP
 from .spline_flow import NSF_AR, NSF_CL
 
 

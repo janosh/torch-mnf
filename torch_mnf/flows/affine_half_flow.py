@@ -13,7 +13,7 @@ https://arxiv.org/abs/1605.08803
 import torch
 from torch import nn
 
-from torch_mnf.models import MLP
+from ..models import MLP
 
 
 class AffineHalfFlow(nn.Module):
@@ -25,14 +25,14 @@ class AffineHalfFlow(nn.Module):
     - NICE only shifts
     """
 
-    def __init__(self, dim, parity, net_class=MLP, nh=24, scale=True, shift=True):
+    def __init__(self, dim, parity, h_sizes=[24, 24, 24], scale=True, shift=True):
         super().__init__()
         self.parity = parity
         self.s_net = self.t_net = lambda x: x.new_zeros(x.size(0), dim // 2)
         if scale:
-            self.s_net = net_class(dim // 2, nh, nh, nh, dim // 2)
+            self.s_net = MLP(dim // 2, *h_sizes, dim // 2)
         if shift:
-            self.t_net = net_class(dim // 2, nh, nh, nh, dim // 2)
+            self.t_net = MLP(dim // 2, *h_sizes, dim // 2)
 
     def forward(self, z, inverse=False):
         z0, z1 = z.chunk(2, dim=1)
@@ -42,9 +42,9 @@ class AffineHalfFlow(nn.Module):
         x0 = z0  # untouched half
         # transform z1 as a function of z0
         if inverse:
-            s, t = -s, -t  # change sign of s here to get the right log_det below
+            x1 = (z1 - t) / s.exp()
             # what's called x1 is really z1 and vice versa since we're doing the inverse
-            x1 = (z1 + t) * s.exp()
+            s = -s  # change sign of s to get the right log_det below
         else:
             x1 = s.exp() * z1 + t
         if self.parity:

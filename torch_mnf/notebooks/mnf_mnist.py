@@ -52,28 +52,28 @@ def train_step(model, optim, loss_fn, images, labels):
     return loss, preds
 
 
-def train_fn(net, optim, loss_fn, loader, epochs=1, log_every=None):
+def train_fn(model, optim, loss_fn, data_loader, epochs=1, log_every=None):
 
     for epoch in range(epochs):
-        pbar = tqdm(loader, desc=f"epoch {epoch + 1}/{epochs}")
+        pbar = tqdm(data_loader, desc=f"epoch {epoch + 1}/{epochs}")
         for samples, labels in pbar:
 
-            loss, preds = train_step(net, optim, loss_fn, samples, labels)
+            loss, preds = train_step(model, optim, loss_fn, samples, labels)
 
-            if log_every and net.step % log_every == 0:
+            if log_every and model.step % log_every == 0:
 
                 # Accuracy estimated by single call for speed. Would be more accurate to
                 # approximately integrate over parameter posteriors by averaging across
                 # multiple calls.
-                val_preds = net(X_val)
+                val_preds = model(X_val)
                 val_acc = (y_val == val_preds.argmax(1)).float().mean()
                 train_acc = (labels == preds.argmax(1)).float().mean()
-                pbar.set_postfix(loss=f"{loss:.4g}", val_acc=f"{val_acc:.4g}")
+                pbar.set_postfix(loss=f"{loss:.4}", val_acc=f"{val_acc:.4}")
 
-                writer.add_scalar("accuracy/training", train_acc, net.step)
-                writer.add_scalar("accuracy/validation", val_acc, net.step)
+                writer.add_scalar("accuracy/training", train_acc, model.step)
+                writer.add_scalar("accuracy/validation", val_acc, model.step)
 
-            net.step += 1
+            model.step += 1
 
 
 # %%
@@ -120,7 +120,7 @@ rot_img(mnf_pred, img9)
 
 # %%
 grid = tv.utils.make_grid(X_val)
-writer.add_image("images", grid, 0)
+writer.add_image("MNIST examples", grid, 0)
 writer.add_graph(mnf_lenet, X_val)  # add model graph to TensorBoard summary
 writer.close()
 
@@ -139,4 +139,4 @@ train_fn(lenet, lenet_adam, lenet_loss_fn, train_loader)
 
 
 # %%
-rot_img(lambda x: lenet(torch.tensor(x)).exp(), img9, plot_type="bar")
+rot_img(lambda x: lenet(torch.tensor(x)).exp().detach().numpy(), img9, plot_type="bar")
