@@ -1,5 +1,4 @@
 import torch
-import torch.nn.functional as F
 from torch import nn
 
 from .. import flows as fl
@@ -77,12 +76,12 @@ class MNFLinear(nn.Module):
         )
         log_q = -log_det_q - 0.5 * self.q0_log_var.sum()
 
-        act = F.tanh(self.r0_c @ weight.T)
+        act = torch.tanh(self.r0_c @ weight.T)
 
         mean_r = self.r0_b1.ger(act).mean(1)  # eq. (9)
         log_var_r = self.r0_b2.ger(act).mean(1)  # eq. (10)
 
-        zs, log_det_r = self.flow_r.forward(z)
+        zs, [log_det_r] = self.flow_r.forward(z)
 
         log_r = log_det_r + 0.5 * torch.sum(
             -log_var_r.exp() * (zs[-1] - mean_r) ** 2 + log_var_r

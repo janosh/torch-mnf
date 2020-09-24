@@ -98,13 +98,13 @@ class MNFConv2d(nn.Module):
         log_q = -log_det_q - log_q_z0
 
         W_mean = W_mean.view(-1, len(self.r0_c)) @ self.r0_c  # eq. (11)
-        W_var = W_var.view(-1, len(self.r0_c)) @ self.r0_c  # eq. (12)
-        epsilon_w = torch.randn_like(W_var)
+        W_std = W_var.sqrt().view(-1, len(self.r0_c)) @ self.r0_c  # eq. (12)
+        epsilon_w = torch.randn_like(W_std)
         # For convolutional layers, linear mappings empirically work better than
-        # tanh. Hence no need for act = tf.tanh(act). Christos Louizos
+        # tanh. Hence no need for act = tanh(act). Christos Louizos
         # confirmed this in https://github.com/AMLab-Amsterdam/MNF_VBNN/issues/4
         # even though the paper states the use of tanh in conv layers.
-        act = W_mean + W_var.sqrt() * epsilon_w
+        act = W_mean + W_std * epsilon_w
 
         b_mean = torch.sum(b_mean * self.r0_c)
         b_var = torch.sum(self.b_log_var.exp() * self.r0_c ** 2)
@@ -115,7 +115,7 @@ class MNFConv2d(nn.Module):
         mean_r = self.r0_b1.ger(act).mean(1)
         log_var_r = self.r0_b2.ger(act).mean(1)
 
-        zs, log_det_r = self.flow_r.forward(z)
+        zs, [log_det_r] = self.flow_r.forward(z)
 
         # Log likelihood of a zero-covariance normal dist: ln N(x | mu, sigma) =
         # -1/2 sum_dims(ln(2 pi) + ln(sigma^2) + (x - mu)^2 / sigma^2)
