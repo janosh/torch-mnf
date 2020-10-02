@@ -52,11 +52,13 @@ def train_step(model, optim, loss_fn, images, labels):
     return loss, preds
 
 
-def train_fn(model, optim, loss_fn, data_loader, epochs=1, log_every=None):
+def train_fn(model, optim, loss_fn, data_loader, epochs=1, log_every=30, writer=None):
+    vars(model).setdefault("step", 0)  # add train step counter on model if none exists
 
     for epoch in range(epochs):
         pbar = tqdm(data_loader, desc=f"epoch {epoch + 1}/{epochs}")
         for samples, labels in pbar:
+            model.step += 1
 
             loss, preds = train_step(model, optim, loss_fn, samples, labels)
 
@@ -68,12 +70,11 @@ def train_fn(model, optim, loss_fn, data_loader, epochs=1, log_every=None):
                 val_preds = model(X_val)
                 val_acc = (y_val == val_preds.argmax(1)).float().mean()
                 train_acc = (labels == preds.argmax(1)).float().mean()
-                pbar.set_postfix(loss=f"{loss:.4}", val_acc=f"{val_acc:.4}")
+                pbar.set_postfix(loss=f"{loss:.3}", val_acc=f"{val_acc:.3}")
 
-                writer.add_scalar("accuracy/training", train_acc, model.step)
-                writer.add_scalar("accuracy/validation", val_acc, model.step)
-
-            model.step += 1
+                if writer:
+                    writer.add_scalar("accuracy/training", train_acc, model.step)
+                    writer.add_scalar("accuracy/validation", val_acc, model.step)
 
 
 # %%
@@ -85,8 +86,6 @@ img9 = test_set[12][0]
 
 # %%
 mnf_lenet = models.MNFLeNet()
-mnf_lenet.step = 0
-
 mnf_adam = torch.optim.Adam(mnf_lenet.parameters())
 print(f"MNFLeNet param count: {sum(p.numel() for p in mnf_lenet.parameters()):,}")
 
@@ -109,7 +108,7 @@ def mnf_loss_fn(preds, labels):
 
 
 # %%
-train_fn(mnf_lenet, mnf_adam, mnf_loss_fn, train_loader, log_every=20)
+train_fn(mnf_lenet, mnf_adam, mnf_loss_fn, train_loader, writer=writer)
 
 
 # %%
@@ -128,7 +127,6 @@ writer.close()
 # %%
 lenet = models.LeNet()
 lenet_adam = torch.optim.Adam(lenet.parameters(), lr=1e-3)
-lenet.step = 0
 print(f"LeNet param count: {sum(p.numel() for p in lenet.parameters()):,}")
 
 
