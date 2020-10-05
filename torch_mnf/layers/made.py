@@ -6,7 +6,6 @@ Copied from https://github.com/karpathy/pytorch-made.
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 from torch import nn
 
 
@@ -21,7 +20,7 @@ class MaskedLinear(nn.Linear):
         self.mask.data.copy_(torch.from_numpy(mask))
 
     def forward(self, x):
-        return F.linear(x, self.mask.T * self.weight, self.bias)
+        return x @ (self.weight.T * self.mask) + self.bias
 
 
 class MADE(nn.Sequential):

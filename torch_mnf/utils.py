@@ -1,7 +1,13 @@
+from functools import wraps
+from os.path import abspath, dirname
+from typing import Callable
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from scipy.ndimage import rotate
+
+ROOT = dirname(abspath(__file__))
 
 
 def rot_img(pred_fn, img, plot_type="violin", axes=[1, 2]):
@@ -35,3 +41,24 @@ def rot_img(pred_fn, img, plot_type="violin", axes=[1, 2]):
         ax2.imshow(img_rot.squeeze(), cmap="gray")
 
     plt.tight_layout()  # keeps titles clear of above subplots
+
+
+def interruptable(orig_func: Callable = None, handler: Callable = None):
+    """Allows to gracefully abort calls to the decorated function with ctrl + c."""
+
+    def wrapper(func):
+        @wraps(func)
+        def wrapped_function(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except KeyboardInterrupt:
+                handler() if handler else print(
+                    f"\nDetected KeyboardInterrupt: Aborting call to {func.__name__}"
+                )
+
+        return wrapped_function
+
+    if orig_func:
+        return wrapper(orig_func)
+
+    return wrapper

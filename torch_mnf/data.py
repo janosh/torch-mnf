@@ -1,11 +1,10 @@
-import os
 import pickle
 
 import numpy as np
 import torch
 from sklearn.datasets import make_blobs, make_moons
 
-ROOT = os.getcwd().split("/torch_mnf", 1)[0]
+from .utils import ROOT
 
 
 def sample_siggraph(n_samples):

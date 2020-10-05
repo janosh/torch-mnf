@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from .. import flows as fl
+from .. import flows
 
 
 class MNFConv2d(nn.Module):
@@ -49,13 +49,13 @@ class MNFConv2d(nn.Module):
         self.r0_b1 = nn.Parameter(0.1 * torch.randn(n_out))
         self.r0_b2 = nn.Parameter(0.1 * torch.randn(n_out))
 
-        # fl.AffineHalfFlow(n_out, parity=i % 2, h_sizes=h_sizes)
-        q_flows = [fl.RNVP(n_out, h_sizes=h_sizes) for _ in range(n_flows_q)]
-        self.flow_q = fl.NormalizingFlow(q_flows)
+        # flows.AffineHalfFlow(n_out, parity=i % 2, h_sizes=h_sizes)
+        q_flows = [flows.RNVP(n_out, h_sizes=h_sizes) for _ in range(n_flows_q)]
+        self.flow_q = flows.NormalizingFlow(q_flows)
 
-        # fl.AffineHalfFlow(n_out, parity=i % 2, h_sizes=h_sizes)
-        r_flows = [fl.RNVP(n_out, h_sizes=h_sizes) for _ in range(n_flows_r)]
-        self.flow_r = fl.NormalizingFlow(r_flows)
+        # flows.AffineHalfFlow(n_out, parity=i % 2, h_sizes=h_sizes)
+        r_flows = [flows.RNVP(n_out, h_sizes=h_sizes) for _ in range(n_flows_r)]
+        self.flow_r = flows.NormalizingFlow(r_flows)
 
     def forward(self, x):  # see algorithm 2 in MNF paper
         z, _ = self.sample_z()

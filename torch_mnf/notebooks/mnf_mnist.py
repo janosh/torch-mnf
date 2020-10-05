@@ -8,8 +8,8 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 import torch
+import torch.nn.functional as F
 import torchvision as tv
-from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.datasets import MNIST
@@ -17,8 +17,7 @@ from torchvision.transforms import ToTensor
 from tqdm import tqdm
 
 from torch_mnf import models
-from torch_mnf.data import ROOT
-from torch_mnf.evaluate import rot_img
+from torch_mnf.utils import ROOT, interruptable, rot_img
 
 # %%
 batch_size = 32
@@ -52,6 +51,7 @@ def train_step(model, optim, loss_fn, images, labels):
     return loss, preds
 
 
+@interruptable
 def train_fn(model, optim, loss_fn, data_loader, epochs=1, log_every=30, writer=None):
     vars(model).setdefault("step", 0)  # add train step counter on model if none exists
 
@@ -64,9 +64,9 @@ def train_fn(model, optim, loss_fn, data_loader, epochs=1, log_every=30, writer=
 
             if log_every and model.step % log_every == 0:
 
-                # Accuracy estimated by single call for speed. Would be more accurate to
-                # approximately integrate over parameter posteriors by averaging across
-                # multiple calls.
+                # Accuracy estimated by single call for speed. Would be more
+                # accurate to approximately integrate over parameter posteriors
+                # by averaging across multiple calls.
                 val_preds = model(X_val)
                 val_acc = (y_val == val_preds.argmax(1)).float().mean()
                 train_acc = (labels == preds.argmax(1)).float().mean()
@@ -78,9 +78,10 @@ def train_fn(model, optim, loss_fn, data_loader, epochs=1, log_every=30, writer=
 
 
 # %%
-# create validation set
-X_val = test_set.data[:100].unsqueeze(1).float() / 255
-y_val = test_set.targets[:100]
+# Create validation set. If val_set size is larger than batch_size,
+# PyTorch needs to recreate the graph after every model call using val_set.
+X_val = test_set.data[:batch_size].unsqueeze(1).float() / 255
+y_val = test_set.targets[:batch_size]
 img9 = test_set[12][0]
 
 

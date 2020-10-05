@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 import torch_mnf.flows as nf
 from torch_mnf import data
-from torch_mnf.data import ROOT
+from torch_mnf.utils import ROOT, interruptable
 
 # %%
 torch.manual_seed(0)  # ensure reproducible results
@@ -77,7 +77,9 @@ SAVE_TO = f"{ROOT}/results/rnvp/{sample_target_dist.__name__.replace('sample_', 
 
 # %%
 # If loss turns NaN late during training, try decreasing batch size (n_samples)
+@interruptable
 def train_flow(steps=1000, n_samples=128, report_every=100, cb=None):
+    """test"""
     losses = []
     model.step += steps
     pbar = tqdm(range(steps))

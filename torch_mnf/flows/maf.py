@@ -11,7 +11,7 @@ to generate data and IAF would need D passes to estimate densities."
 import torch
 from torch import nn
 
-from torch_mnf.layers import MADE
+from ..layers import MADE
 
 
 class MAF(nn.Module):

@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from .. import flows as fl
+from .. import flows
 
 
 class MNFLinear(nn.Module):
@@ -33,15 +33,15 @@ class MNFLinear(nn.Module):
         self.r0_b1 = nn.Parameter(0.1 * torch.randn(n_in))
         self.r0_b2 = nn.Parameter(0.1 * torch.randn(n_in))
 
-        flow_q = [fl.RNVP(n_in, h_sizes=h_sizes) for _ in range(n_flows_q)]
-        self.flow_q = fl.NormalizingFlow(flow_q)
+        flow_q = [flows.RNVP(n_in, h_sizes=h_sizes) for _ in range(n_flows_q)]
+        self.flow_q = flows.NormalizingFlow(flow_q)
 
-        flow_r = [fl.RNVP(n_in, h_sizes=h_sizes) for _ in range(n_flows_r)]
+        flow_r = [flows.RNVP(n_in, h_sizes=h_sizes) for _ in range(n_flows_r)]
         # flow_r parametrizes the auxiliary distribution r(z|W) used to lower bound the
         # entropy. The tightness of the bound depends on r(z|W)'s ability to approximate
         # the "auxiliary" posterior q(z|W) = q(W|z) x q(z) / q(W). Hence we use another
         # flow to improve the approximation.
-        self.flow_r = fl.NormalizingFlow(flow_r)
+        self.flow_r = flows.NormalizingFlow(flow_r)
 
     def forward(self, x):  # see algorithm 1 in MNF paper
         z, _ = self.sample_z(x.size(0))
