@@ -1,6 +1,6 @@
 from torch import nn
 
-from ..layers import MNFConv2d, MNFLinear
+import torch_mnf.layers
 
 
 class MNFLeNet(nn.Sequential):
@@ -8,16 +8,16 @@ class MNFLeNet(nn.Sequential):
 
     def __init__(self, **kwargs):
         layers = [
-            MNFConv2d(1, 20, kernel_size=5, **kwargs),
+            torch_mnf.layers.MNFConv2d(1, 20, kernel_size=5, **kwargs),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),
-            MNFConv2d(20, 50, kernel_size=5, **kwargs),
+            torch_mnf.layers.MNFConv2d(20, 50, kernel_size=5, **kwargs),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),
             nn.Flatten(),
-            MNFLinear(50 * 16, 50, **kwargs),
+            torch_mnf.layers.MNFLinear(50 * 16, 50, **kwargs),
             nn.ReLU(),
-            MNFLinear(50, 10, **kwargs),
+            torch_mnf.layers.MNFLinear(50, 10, **kwargs),
             nn.LogSoftmax(dim=-1),
         ]
         super().__init__(*layers)
