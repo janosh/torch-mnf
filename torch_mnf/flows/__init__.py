@@ -34,7 +34,7 @@ class NormalizingFlow(nn.Module):
         self.flows = nn.ModuleList(flows)
 
     def forward(self, z):  # z -> x
-        log_det = torch.zeros(z.size(0))
+        log_det = torch.zeros(z.size(0), device=z.device)
         xs = [z]
         for flow in self.flows:
             z, ld = flow.forward(z)
@@ -43,7 +43,7 @@ class NormalizingFlow(nn.Module):
         return xs, log_det
 
     def inverse(self, x):  # x -> z
-        log_det = torch.zeros(x.size(0))
+        log_det = torch.zeros(x.size(0), device=x.device)
         zs = [x]
         for flow in reversed(self.flows):
             x, ld = flow.inverse(x)
