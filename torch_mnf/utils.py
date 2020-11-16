@@ -7,7 +7,7 @@ import pandas as pd
 import seaborn as sns
 from scipy.ndimage import rotate
 
-ROOT = dirname(abspath(__file__))
+ROOT = dirname(dirname(abspath(__file__)))
 
 
 def rot_img(pred_fn, img, plot_type="violin", axes=[1, 2]):

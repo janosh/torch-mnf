@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from matplotlib.collections import LineCollection
 from torch.distributions import MultivariateNormal
-from tqdm import tqdm
+from tqdm import trange
 
 import torch_mnf.flows as nf
 from torch_mnf import data
@@ -82,8 +82,7 @@ def train_flow(steps=1000, n_samples=128, report_every=100, cb=None):
     """test"""
     losses = []
     model.step += steps
-    pbar = tqdm(range(steps))
-    for step in pbar:
+    for step in (pbar := trange(steps)) :
         x = sample_target_dist(n_samples)
 
         _, log_det = model.inverse(x)
