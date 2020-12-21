@@ -2,11 +2,11 @@
 # Update with `pre-commit autoupdate`.
 # Setup CI and readme badge at https://pre-commit.ci.
 repos:
-  - repo: https://github.com/timothycrosley/isort
+  - repo: https://github.com/PyCQA/isort
     rev: 5.6.4
     hooks:
       - id: isort
-  - repo: https://github.com/ambv/black
+  - repo: https://github.com/psf/black
     rev: 20.8b1
     hooks:
       - id: black
