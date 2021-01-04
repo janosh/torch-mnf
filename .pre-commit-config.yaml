@@ -3,7 +3,7 @@
 # Setup CI and readme badge at https://pre-commit.ci.
 repos:
   - repo: https://github.com/PyCQA/isort
-    rev: 5.6.4
+    rev: 5.7.0
     hooks:
       - id: isort
   - repo: https://github.com/psf/black
