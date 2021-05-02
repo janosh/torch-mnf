@@ -2,6 +2,7 @@ from torch.nn import BatchNorm1d, ReLU, Sequential
 
 import torch_mnf.layers
 
+
 # Avoid circular imports. See https://stackoverflow.com/a/42114399.
 MNFLinear = lambda: torch_mnf.layers.MNFLinear
 
