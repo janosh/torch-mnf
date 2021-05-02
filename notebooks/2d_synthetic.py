@@ -10,6 +10,7 @@ import torch_mnf.flows as nf
 from torch_mnf import data
 from torch_mnf.utils import ROOT, interruptable
 
+
 # %%
 torch.manual_seed(0)  # ensure reproducible results
 
@@ -23,8 +24,9 @@ plt.scatter(*samples.T, s=10)
 # Construct the base distribution for a normalizing flow model.
 base = MultivariateNormal(torch.zeros(2), torch.eye(2))
 
-# Construct the flow.
+
 # %% -- RNVP --
+# Construct the flow.
 flows = [nf.AffineHalfFlow(dim=2, parity=i % 2) for i in range(9)]
 
 
@@ -79,10 +81,11 @@ SAVE_TO = f"{ROOT}/results/rnvp/{sample_target_dist.__name__.replace('sample_', 
 # If loss turns NaN late during training, try decreasing batch size (n_samples)
 @interruptable
 def train_flow(steps=1000, n_samples=128, report_every=100, cb=None):
-    """test"""
+
     losses = []
-    model.step += steps
-    for step in (pbar := trange(steps)) :
+    pbar = trange(steps)
+
+    for step in pbar:
         x = sample_target_dist(n_samples)
 
         _, log_det = model.inverse(x)
@@ -93,6 +96,7 @@ def train_flow(steps=1000, n_samples=128, report_every=100, cb=None):
         model.zero_grad()  # reset gradients
         loss.backward()  # compute new gradients
         optimizer.step()  # update weights
+        model.step += 1
 
         if step % report_every == 0:
             losses.append(loss)

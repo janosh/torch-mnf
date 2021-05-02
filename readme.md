@@ -2,9 +2,7 @@
 
 [![Test Status](https://github.com/janosh/torch-mnf/workflows/Tests/badge.svg)](https://github.com/janosh/torch-mnf/actions)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/janosh/torch-mnf/master.svg)](https://results.pre-commit.ci/latest/github/janosh/torch-mnf/master)
-[![License](https://img.shields.io/github/license/janosh/torch-mnf?label=License)](/license)
 ![GitHub Repo Size](https://img.shields.io/github/repo-size/janosh/torch-mnf?label=Repo+Size)
-![GitHub last commit](https://img.shields.io/github/last-commit/janosh/torch-mnf?label=Last+Commit)
 
 PyTorch implementation of Multiplicative Normalizing Flows [[1]](#mnf-bnn).
 

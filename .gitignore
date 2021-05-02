@@ -2,3 +2,4 @@ __pycache__
 data/MNIST
 runs
 *.egg-info
+*logs
