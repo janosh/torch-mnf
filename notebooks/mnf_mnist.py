@@ -29,15 +29,15 @@ torch.manual_seed(0)  # ensure reproducible results
 
 # %%
 # torchvision.transforms.Normalize() seems to be unnecessary
-train_set, test_set = [
+train_set, test_set = (
     MNIST(ROOT + "/data", transform=ToTensor(), download=True, train=x)
     for x in [True, False]
-]
+)
 
-train_loader, test_loader = [
+train_loader, test_loader = (
     DataLoader(x, batch_size=batch_size, shuffle=True, drop_last=True)
     for x in [train_set, test_set]
-]
+)
 
 
 # %%
