@@ -11,15 +11,15 @@ from torch_mnf.models import MNFLeNet
 torch.manual_seed(0)  # ensure reproducible results
 
 
-train_set, test_set = [
+train_set, test_set = (
     MNIST(ROOT + "/data", transform=ToTensor(), download=True, train=x)
     for x in [True, False]
-]
+)
 
-train_loader, test_loader = [
+train_loader, test_loader = (
     DataLoader(x, batch_size=32, shuffle=True, drop_last=True)
     for x in [train_set, test_set]
-]
+)
 
 X_val = test_set.data[:500].unsqueeze(1).float() / 255
 y_val = test_set.targets[:500]

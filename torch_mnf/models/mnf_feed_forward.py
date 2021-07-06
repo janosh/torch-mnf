@@ -21,4 +21,4 @@ class MNFFeedForward(Sequential):
         as a regularization term in the loss function. Tensorflow will issue
         warnings "Gradients do not exist for variables of MNFLinear" if you forget.
         """
-        return sum([lyr.kl_div() for lyr in self.layers if hasattr(lyr, "kl_div")])
+        return sum(lyr.kl_div() for lyr in self.layers if hasattr(lyr, "kl_div"))

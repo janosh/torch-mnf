@@ -32,4 +32,4 @@ class MNFLeNet(nn.Sequential):
         """Compute current KL divergence of the whole model. Given by the sum
         of KL divs. from each MNF layer. Use as a regularization term during training.
         """
-        return sum([lyr.kl_div() for lyr in self if hasattr(lyr, "kl_div")])
+        return sum(lyr.kl_div() for lyr in self if hasattr(lyr, "kl_div"))
