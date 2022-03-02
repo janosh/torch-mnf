@@ -24,4 +24,4 @@ jobs:
         run: pip install .[test]
 
       - name: Run Tests
-        run: pytest
+        run: pytest --cov torch_mnf
