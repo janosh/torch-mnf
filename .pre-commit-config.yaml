@@ -1,6 +1,3 @@
-# Install these hooks with `pre-commit install`.
-# Setup CI at https://pre-commit.ci.
-
 ci:
   autoupdate_schedule: quarterly
 
@@ -9,20 +6,30 @@ repos:
     rev: 5.10.1
     hooks:
       - id: isort
+
   - repo: https://github.com/psf/black
-    rev: 21.12b0
+    rev: 22.1.0
     hooks:
       - id: black
+
   - repo: https://github.com/PyCQA/flake8
     rev: 4.0.1
     hooks:
       - id: flake8
+
   - repo: https://github.com/asottile/pyupgrade
     rev: v2.31.0
     hooks:
       - id: pyupgrade
         args: [--py36-plus]
+
   - repo: https://github.com/janosh/format-ipy-cells
-    rev: v0.1.7
+    rev: v0.1.9
     hooks:
       - id: format-ipy-cells
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.1.0
+    hooks:
+      - id: codespell
+        args: [--ignore-words-list, interruptable]
