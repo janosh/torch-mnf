@@ -1,6 +1,5 @@
 from setuptools import find_namespace_packages, setup
 
-
 setup(
     name="Torch-MNF",
     version="0.1.0",
@@ -19,5 +18,5 @@ setup(
         "torch",
         "torchvision",
     ],
-    extras_require={"test": ["pytest"]},
+    extras_require={"test": ["pytest", "pytest-cov"]},
 )

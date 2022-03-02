@@ -19,7 +19,6 @@ from tqdm import tqdm
 from torch_mnf import models
 from torch_mnf.utils import ROOT, interruptable, rot_img
 
-
 # %%
 batch_size = 32
 plt.rcParams["figure.figsize"] = [12, 8]
