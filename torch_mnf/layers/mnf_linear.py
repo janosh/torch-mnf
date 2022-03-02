@@ -50,7 +50,7 @@ class MNFLinear(nn.Module):
         W_var = self.W_log_var.exp()
         bias_var = self.b_log_var.exp()
 
-        var = x ** 2 @ W_var.T + bias_var
+        var = x**2 @ W_var.T + bias_var
         epsilon = torch.randn_like(var)
 
         return mean + var.sqrt() * epsilon
@@ -70,9 +70,9 @@ class MNFLinear(nn.Module):
         epsilon_weight = torch.randn_like(W_var)
         weight = W_mean + W_var.sqrt() * epsilon_weight
 
-        kl_div_W = 0.5 * torch.sum(-W_var.log() + W_var + W_mean ** 2 - 1)
+        kl_div_W = 0.5 * torch.sum(-W_var.log() + W_var + W_mean**2 - 1)
         kl_div_b = 0.5 * torch.sum(
-            -self.b_log_var + self.b_log_var.exp() + self.b_mean ** 2 - 1
+            -self.b_log_var + self.b_log_var.exp() + self.b_mean**2 - 1
         )
         log_q = -log_det_q - 0.5 * self.q0_log_var.sum()
 

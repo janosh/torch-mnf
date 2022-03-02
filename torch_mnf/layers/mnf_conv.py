@@ -65,7 +65,7 @@ class MNFConv2d(nn.Module):
         W_mean = self.W_mean * z.view(-1, 1, 1, 1)
 
         mean = F.conv2d(x, weight=W_mean, bias=self.b_mean)
-        var = F.conv2d(x ** 2, weight=W_var, bias=b_var)
+        var = F.conv2d(x**2, weight=W_var, bias=b_var)
         epsilon = torch.randn_like(var)
 
         return mean + var.sqrt() * epsilon
@@ -88,8 +88,8 @@ class MNFConv2d(nn.Module):
         W_mean = self.W_mean * z.view(-1, 1, 1, 1)
         b_mean = self.b_mean * z
 
-        kl_div_W = 0.5 * torch.sum(-W_var.log() + W_var + W_mean ** 2 - 1)
-        kl_div_b = 0.5 * torch.sum(-b_var.log() + b_var + b_mean ** 2 - 1)
+        kl_div_W = 0.5 * torch.sum(-W_var.log() + W_var + W_mean**2 - 1)
+        kl_div_b = 0.5 * torch.sum(-b_var.log() + b_var + b_mean**2 - 1)
 
         # log_q_z0 = entropy of the initial distribution q(z_0). For a Gaussian, this is
         # 1/2 ln(2 pi e sigma^2) but we drop the constant offset of 1/2 ln(2 pi e) and
@@ -107,7 +107,7 @@ class MNFConv2d(nn.Module):
         act = W_mean + W_std * epsilon_w
 
         b_mean = torch.sum(b_mean * self.r0_c)
-        b_var = torch.sum(self.b_log_var.exp() * self.r0_c ** 2)
+        b_var = torch.sum(self.b_log_var.exp() * self.r0_c**2)
         epsilon_b = torch.randn([])
         act += b_mean + b_var.sqrt() * epsilon_b
 

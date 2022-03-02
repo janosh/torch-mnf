@@ -19,7 +19,7 @@ from ..models import MLP
 class AffineHalfFlow(nn.Module):
     """
     As seen in RealNVP, affine autoregressive flow (z = x * exp(s) + t), where half of
-    dimensions in x are linearly scaled/transfromed as a function of the other half.
+    dimensions in x are linearly scaled/transformed as a function of the other half.
     Which half is which is determined by the parity bit.
     - RealNVP both scales and shifts (default)
     - NICE only shifts

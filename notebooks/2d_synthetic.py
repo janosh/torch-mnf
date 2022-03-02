@@ -148,12 +148,12 @@ def plot_grid_warp(ax, z, target_samples, n_lines):
 
     grid = z.reshape((n_lines, n_lines, 2))
     # y coords
-    p1 = np.reshape(grid[1:, :, :], (n_lines ** 2 - n_lines, 2))
-    p2 = np.reshape(grid[:-1, :, :], (n_lines ** 2 - n_lines, 2))
+    p1 = np.reshape(grid[1:, :, :], (n_lines**2 - n_lines, 2))
+    p2 = np.reshape(grid[:-1, :, :], (n_lines**2 - n_lines, 2))
     lcy = LineCollection(zip(p1, p2), alpha=0.3)
     # x coords
-    p1 = np.reshape(grid[:, 1:, :], (n_lines ** 2 - n_lines, 2))
-    p2 = np.reshape(grid[:, :-1, :], (n_lines ** 2 - n_lines, 2))
+    p1 = np.reshape(grid[:, 1:, :], (n_lines**2 - n_lines, 2))
+    p2 = np.reshape(grid[:, :-1, :], (n_lines**2 - n_lines, 2))
     lcx = LineCollection(zip(p1, p2), alpha=0.3)
     # draw the lines
     ax.add_collection(lcx)
@@ -177,7 +177,7 @@ n_grid = 20  # number of grid points
 ticks = np.linspace(-3, 3, n_grid)
 latent_grid = np.stack(np.meshgrid(ticks, ticks), axis=-1)
 # seems appropriate since we use radial distributions as base distributions
-in_circle = np.sqrt((latent_grid ** 2).sum(axis=-1)) <= 3
+in_circle = np.sqrt((latent_grid**2).sum(axis=-1)) <= 3
 latent_grid = latent_grid.reshape((n_grid * n_grid, 2))
 latent_grid = torch.from_numpy(latent_grid.astype("float32"))
 
