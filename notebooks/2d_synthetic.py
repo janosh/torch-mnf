@@ -10,6 +10,7 @@ import torch_mnf.flows as nf
 from torch_mnf import data
 from torch_mnf.utils import ROOT, interruptable
 
+
 # %%
 torch.manual_seed(0)  # ensure reproducible results
 

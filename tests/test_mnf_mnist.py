@@ -7,6 +7,7 @@ from torchvision.transforms import ToTensor
 from torch_mnf.data import ROOT
 from torch_mnf.models import MNFLeNet
 
+
 torch.manual_seed(0)  # ensure reproducible results
 
 

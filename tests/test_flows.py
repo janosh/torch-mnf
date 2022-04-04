@@ -4,6 +4,7 @@ from torch.distributions import MultivariateNormal
 import torch_mnf.flows as nf
 from torch_mnf import data
 
+
 torch.manual_seed(0)  # ensure reproducible results
 
 
