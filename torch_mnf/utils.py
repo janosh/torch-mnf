@@ -11,7 +11,7 @@ from scipy.ndimage import rotate
 ROOT = dirname(dirname(abspath(__file__)))
 
 
-def rot_img(pred_fn, img, plot_type="violin", axes=[1, 2]):
+def plot_model_preds_for_rotating_img(pred_fn, img, plot_type="violin", axes=[1, 2]):
     """Rotate an image 180° in steps of 20°. For the example of an MNIST 9
     digit, this starts out on the training manifold, leaves it when the 9
     lies on its side and reenters it once we're at 180° and the 9 looks like

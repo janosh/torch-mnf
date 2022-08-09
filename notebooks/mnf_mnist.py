@@ -17,7 +17,7 @@ from torchvision.transforms import ToTensor
 from tqdm import tqdm
 
 from torch_mnf import models
-from torch_mnf.utils import ROOT, interruptable, rot_img
+from torch_mnf.utils import ROOT, interruptable, plot_model_preds_for_rotating_img
 
 
 # %%
@@ -114,9 +114,12 @@ train_fn(mnf_lenet, mnf_adam, mnf_loss_fn, train_loader, writer=writer)
 
 
 # %%
-# repeat the same image along axis 0 to run multiple forward passes in parallel
-mnf_pred = lambda x: mnf_lenet(torch.tensor(x.repeat(500, 0))).exp().detach().numpy()
-rot_img(mnf_pred, img9)
+def make_parallel_mnf_preds(img, model=mnf_lenet, n_preds=500):
+    # repeat the same image along axis 0 to run multiple forward passes in parallel
+    return model(torch.tensor(img.repeat(n_preds, 0))).exp().detach().numpy()
+
+
+plot_model_preds_for_rotating_img(make_parallel_mnf_preds, img9)
 
 
 # %%
@@ -133,10 +136,14 @@ print(f"LeNet param count: {sum(p.numel() for p in lenet.parameters()):,}")
 
 
 # %%
-lenet_loss_fn = lambda preds, labels: F.nll_loss(preds, labels).mean()
+def lenet_loss_fn(preds, labels):
+    return F.nll_loss(preds, labels).mean()
+
 
 train_fn(lenet, lenet_adam, lenet_loss_fn, train_loader)
 
 
 # %%
-rot_img(lambda x: lenet(torch.tensor(x)).exp().detach().numpy(), img9, plot_type="bar")
+plot_model_preds_for_rotating_img(
+    lambda x: lenet(torch.tensor(x)).exp().detach().numpy(), img9, plot_type="bar"
+)
