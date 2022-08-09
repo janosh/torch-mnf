@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 
 setup(
-    name="Torch-MNF",
+    name="torch-mnf",
     version="0.2.0",
     author="Janosh Riebesell",
     author_email="janosh.riebesell@gmail.com",
