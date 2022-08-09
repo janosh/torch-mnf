@@ -11,6 +11,11 @@ from torch_mnf import data
 from torch_mnf.utils import ROOT, interruptable
 
 
+plt.rc("savefig", bbox="tight", dpi=200)
+plt.rcParams["figure.constrained_layout.use"] = True
+plt.rc("figure", dpi=150)
+
+
 # %%
 torch.manual_seed(0)  # ensure reproducible results
 
@@ -109,7 +114,6 @@ def train_flow(steps=1000, n_samples=128, report_every=100, cb=None):
 
 
 # %%
-# with torch.autograd.detect_anomaly():
 train_flow(steps=3000, n_samples=64)
 
 
@@ -139,7 +143,7 @@ ax2.scatter(*x_last.T, c="r", s=5, alpha=0.5)
 ax2.legend(["data", r"z $\to$ x"])
 ax2.axis("scaled")
 ax1.set(title=r"z $\to$ x")
-# plt.savefig(SAVE_TO + "z2x+x2z.pdf", bbox_inches="tight")
+# plt.savefig(SAVE_TO + "z2x+x2z.pdf")
 
 
 # %%
@@ -223,7 +227,7 @@ def plot_learning():
 
 # %%
 losses = train_flow(steps=400, cb=plot_learning)
-# plt.savefig(SAVE_TO + "point-flow.pdf", bbox_inches="tight")
+# plt.savefig(SAVE_TO + "point-flow.pdf")
 
 
 # %%

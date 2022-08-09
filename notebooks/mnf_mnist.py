@@ -22,7 +22,10 @@ from torch_mnf.utils import ROOT, interruptable, plot_model_preds_for_rotating_i
 
 # %%
 batch_size = 32
-plt.rcParams["figure.figsize"] = [12, 8]
+
+plt.rc("savefig", bbox="tight", dpi=200)
+plt.rcParams["figure.constrained_layout.use"] = True
+plt.rc("figure", dpi=150)
 
 torch.manual_seed(0)  # ensure reproducible results
 

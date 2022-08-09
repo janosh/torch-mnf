@@ -45,7 +45,7 @@ def plot_model_preds_for_rotating_img(pred_fn, img, plot_type="violin", axes=[1,
 
 
 def interruptable(orig_func: Callable = None, handler: Callable = None):
-    """Allows to gracefully abort calls to the decorated function with ctrl + c."""
+    """Gracefully abort calls to the decorated function with ctrl + c."""
 
     def wrapper(func):
         @wraps(func)
@@ -54,7 +54,7 @@ def interruptable(orig_func: Callable = None, handler: Callable = None):
                 return func(*args, **kwargs)
             except KeyboardInterrupt:
                 handler() if handler else print(
-                    f"\nDetected KeyboardInterrupt: Aborting call to {func.__name__}"
+                    f"\nDetected KeyboardInterrupt: Aborting {func.__name__}"
                 )
 
         return wrapped_function
