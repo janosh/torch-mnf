@@ -12,8 +12,8 @@ With flow implementations courtesy of [Andrej Karpathy](https://github.com/karpa
 
 New here? Check out the example notebooks:
 
-- [`examples/2d_synthetic_data.py`](torch_mnf/examples/2d_synthetic_data.py)
-- [`examples/mnf_mnist.py`](torch_mnf/examples/mnf_mnist.py)
+- [`examples/2d_synthetic_data.ipynb`](torch_mnf/examples/2d_synthetic_data.ipynb)
+- [`examples/mnf_mnist.ipynb`](torch_mnf/examples/mnf_mnist.ipynb)
 
 Interested in the implementation? See
 
