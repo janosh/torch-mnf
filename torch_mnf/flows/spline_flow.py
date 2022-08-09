@@ -12,7 +12,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from ..models import MLP
+from torch_mnf.models import MLP
 
 
 DEFAULT_MIN_BIN_WIDTH = 1e-3

@@ -13,7 +13,7 @@ https://arxiv.org/abs/1605.08803
 import torch
 from torch import nn
 
-from ..models import MLP
+from torch_mnf.models import MLP
 
 
 class AffineHalfFlow(nn.Module):
