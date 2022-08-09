@@ -10,7 +10,13 @@ With flow implementations courtesy of [Andrej Karpathy](https://github.com/karpa
 
 ## Files of Interest
 
-- [`notebooks/mnf_mnist.py`](torch_mnf/notebooks/mnf_mnist.py)
+New here? Check out the example notebooks:
+
+- [`examples/2d_synthetic_data.py`](torch_mnf/examples/2d_synthetic_data.py)
+- [`examples/mnf_mnist.py`](torch_mnf/examples/mnf_mnist.py)
+
+Interested in the implementation? See
+
 - [`models/mnf_lenet.py`](torch_mnf/models/mnf_lenet.py)
 - [`flows/*.py`](torch_mnf/flows)
 - [`layers/*.py`](torch_mnf/layers)
