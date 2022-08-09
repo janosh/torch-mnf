@@ -3,3 +3,4 @@ data/MNIST
 runs
 *.egg-info
 *logs
+build/

@@ -6,7 +6,7 @@ setup(
     version="0.2.0",
     author="Janosh Riebesell",
     author_email="janosh.riebesell@gmail.com",
-    packages=find_packages(include=["torch_mnf*"]),
+    packages=find_packages(),
     url="https://github.com/janosh/torch-mnf",
     description="PyTorch implementation of Multiplicative Normalizing Flows",
     python_requires=">=3.8",
