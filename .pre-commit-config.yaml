@@ -12,7 +12,7 @@ repos:
       - id: isort
 
   - repo: https://github.com/psf/black
-    rev: 22.6.0
+    rev: 22.8.0
     hooks:
       - id: black-jupyter
 
@@ -20,6 +20,7 @@ repos:
     rev: 5.0.4
     hooks:
       - id: flake8
+        additional_dependencies: [flake8-bugbear]
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v2.37.3
@@ -50,21 +51,15 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.1.0
+    rev: v2.2.1
     hooks:
       - id: codespell
         exclude_types: [jupyter]
 
-  - repo: https://github.com/myint/autoflake
-    rev: v1.4
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v1.5.3
     hooks:
       - id: autoflake
-        args:
-          - --in-place
-          - --remove-unused-variables
-          - --remove-all-unused-imports
-          - --expand-star-imports
-          - --ignore-init-module-imports
 
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 1.4.0
@@ -74,3 +69,9 @@ repos:
       - id: nbqa-isort
       - id: nbqa-flake8
         args: [--ignore=E402]
+
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.0
+    hooks:
+      - id: nbstripout
+        args: [--drop-empty-cells, --keep-output]

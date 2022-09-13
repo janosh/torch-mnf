@@ -1,3 +1,5 @@
+from typing import Sequence
+
 from torch.nn import BatchNorm1d, ReLU, Sequential
 
 import torch_mnf.layers
@@ -8,7 +10,7 @@ MNFLinear = lambda: torch_mnf.layers.MNFLinear
 
 
 class MNFFeedForward(Sequential):
-    def __init__(self, layer_sizes=[], activation=ReLU, **kwargs):
+    def __init__(self, layer_sizes: Sequence[int], activation=ReLU, **kwargs):
         layers = []
         for s1, s2 in zip(layer_sizes, layer_sizes[1:]):
             layers.extend(

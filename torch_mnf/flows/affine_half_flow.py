@@ -25,7 +25,7 @@ class AffineHalfFlow(nn.Module):
     - NICE only shifts
     """
 
-    def __init__(self, dim, parity, h_sizes=[24, 24, 24], scale=True, shift=True):
+    def __init__(self, dim, parity, h_sizes=(24, 24, 24), scale=True, shift=True):
         super().__init__()
         self.parity = parity
         self.s_net = self.t_net = lambda x: x.new_zeros(x.size(0), dim // 2)

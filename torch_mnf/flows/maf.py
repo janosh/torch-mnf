@@ -20,7 +20,7 @@ class MAF(nn.Module):
     inverse() (for sampling).
     """
 
-    def __init__(self, dim, parity, net=None, h_sizes=[24, 24, 24]):
+    def __init__(self, dim, parity, net=None, h_sizes=(24, 24, 24)):
         super().__init__()
         # Uses a 4-layer auto-regressive MLP by default.
         self.net = net or MADE(dim, h_sizes, 2 * dim, natural_ordering=True)

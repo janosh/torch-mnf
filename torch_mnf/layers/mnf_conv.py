@@ -16,7 +16,7 @@ class MNFConv2d(nn.Module):
     """
 
     def __init__(
-        self, n_in, n_out, kernel_size, n_flows_q=2, n_flows_r=2, h_sizes=[50]
+        self, n_in, n_out, kernel_size, n_flows_q=2, n_flows_r=2, h_sizes=(50,)
     ):
         """
         Args:

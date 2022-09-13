@@ -16,9 +16,9 @@ class RNVP(nn.Module):
     https://arxiv.org/abs/1606.04934
     """
 
-    def __init__(self, dim, h_sizes=[30]):
+    def __init__(self, dim, h_sizes=(30,)):
         super().__init__()
-        self.net = MLP(*[dim] + h_sizes)
+        self.net = MLP(dim, *h_sizes)
         self.t = nn.Linear(h_sizes[-1], dim)
         self.s = nn.Linear(h_sizes[-1], dim)
 

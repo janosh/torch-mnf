@@ -10,7 +10,7 @@ class MNFLinear(nn.Module):
     Reference: Christos Louizos, Max Welling (Jun 2017) https://arxiv.org/abs/1703.01961
     """
 
-    def __init__(self, n_in, n_out, n_flows_q=2, n_flows_r=2, h_sizes=[50]):
+    def __init__(self, n_in, n_out, n_flows_q=2, n_flows_r=2, h_sizes=(50,)):
         """
         Args:
             n_in (int): number of input units
