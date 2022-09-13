@@ -42,7 +42,7 @@ class MADE(nn.Sequential):
 
         # define a simple MLP neural net
         layers = []
-        hs = [n_in] + hidden_sizes + [n_out]
+        hs = [n_in] + list(hidden_sizes) + [n_out]
         for h0, h1 in zip(hs, hs[1:]):
             layers.extend([MaskedLinear(h0, h1), nn.ReLU()])
         super().__init__(*layers[:-1])  # drop last ReLU)
@@ -54,7 +54,7 @@ class MADE(nn.Sequential):
 
         self.m = {}
         self.update_masks()  # builds the initial self.m connectivity
-        # note, we could also precompute the masks and cache them, but this
+        # note, we could also pre-compute the masks and cache them, but this
         # could get memory expensive for large number of masks.
 
     def update_masks(self):
