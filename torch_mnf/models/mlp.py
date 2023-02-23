@@ -2,7 +2,7 @@ from torch import nn
 
 
 class MLP(nn.Sequential):
-    """Multilayer perceptron"""
+    """Multilayer perceptron."""
 
     def __init__(self, *layer_sizes, leaky_a=0.2):
         layers = []

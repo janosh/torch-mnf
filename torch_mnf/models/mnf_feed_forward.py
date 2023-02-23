@@ -1,5 +1,6 @@
-from typing import Sequence
+from typing import Any, Sequence
 
+from torch import nn
 from torch.nn import BatchNorm1d, ReLU, Sequential
 
 import torch_mnf.layers
@@ -10,7 +11,14 @@ MNFLinear = lambda: torch_mnf.layers.MNFLinear
 
 
 class MNFFeedForward(Sequential):
-    def __init__(self, layer_sizes: Sequence[int], activation=ReLU, **kwargs):
+    """Feed-forward neural network with parameter posteriors modeled by normalizing
+    flows.
+    """
+
+    def __init__(
+        self, layer_sizes: Sequence[int], activation: nn.Module = ReLU, **kwargs: Any
+    ) -> None:
+        """Initialize the model."""
         layers = []
         for s1, s2 in zip(layer_sizes, layer_sizes[1:]):
             layers.extend(
@@ -18,7 +26,7 @@ class MNFFeedForward(Sequential):
             )
         super().__init__(*layers[:-2])  # drop final activation and batch norm
 
-    def kl_div(self):
+    def kl_div(self) -> float:
         """Compute current KL divergence of the whole model. Should be included
         as a regularization term in the loss function. Tensorflow will issue
         warnings "Gradients do not exist for variables of MNFLinear" if you forget.

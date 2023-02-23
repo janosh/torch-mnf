@@ -3,7 +3,7 @@ from torch import nn
 
 
 class NormalizingFlow(nn.Module):
-    """A sequence of normalizing flows is a normalizing flow"""
+    """A sequence of normalizing flows is a normalizing flow."""
 
     def __init__(self, flows):
         super().__init__()

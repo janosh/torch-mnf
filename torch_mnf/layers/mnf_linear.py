@@ -7,18 +7,17 @@ from torch_mnf import flows
 class MNFLinear(nn.Module):
     """Multiplicative Normalizing Flow linear (strictly affine) layer for building
     variational Bayesian NNs.
-    Reference: Christos Louizos, Max Welling (Jun 2017) https://arxiv.org/abs/1703.01961
+    Ref.: Christos Louizos, Max Welling (Jun 2017) https://arxiv.org/abs/1703.01961.
     """
 
     def __init__(self, n_in, n_out, n_flows_q=2, n_flows_r=2, h_sizes=(50,)):
-        """
-        Args:
-            n_in (int): number of input units
-            n_out (int): number of output units
-            n_flows_q (int, optional): length of q-flow.
-            n_flows_r (int, optional): length of r-flow.
-            h_sizes (list[int], optional): Number of layers and their node count
-                in each hidden layer of both the q and r flow.
+        """Args:
+        n_in (int): number of input units
+        n_out (int): number of output units
+        n_flows_q (int, optional): length of q-flow.
+        n_flows_r (int, optional): length of r-flow.
+        h_sizes (list[int], optional): Number of layers and their node count
+        in each hidden layer of both the q and r flow.
         """
         super().__init__()
 
