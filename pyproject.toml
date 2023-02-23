@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "torch-mnf"
+version = "0.2.0"
+description = "PyTorch implementation of Multiplicative Normalizing Flows"
+authors = [{ name = "Janosh Riebesell", email = "janosh.riebesell@gmail.com" }]
+readme = "readme.md"
+license = { file = "license" }
+keywords = [
+    "science",
+    "materials informatics",
+    "materials discovery",
+    "chemistry",
+    "data visualization",
+    "plotly",
+    "matplotlib",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "License :: OSI Approved :: MIT License",
+]
+urls = { Homepage = "https://github.com/janosh/torch-mnf" }
+requires-python = ">=3.8"
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "scipy",
+    "seaborn",
+    "torch",
+    "torchvision",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov"]
+
+[tool.setuptools.packages]
+find = { include = ["torch-mnf"] }
+
+[tool.setuptools.package-data]
+torch-mnf = ["*.csv"]
+
+[tool.distutils.bdist_wheel]
+universal = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-p no:warnings"
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+no_implicit_optional = false
+
+[tool.codespell]
+ignore-words-list = "hist"
