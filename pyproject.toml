@@ -42,10 +42,10 @@ dependencies = [
 test = ["pytest", "pytest-cov"]
 
 [tool.setuptools.packages]
-find = { include = ["torch-mnf"] }
+find = { include = ["torch_mnf"] }
 
 [tool.setuptools.package-data]
-torch-mnf = ["*.csv"]
+torch_mnf = ["*.csv"]
 
 [tool.distutils.bdist_wheel]
 universal = true
