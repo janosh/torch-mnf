@@ -1,4 +1,5 @@
 import torch
+from torch import Tensor
 from torch.distributions import MultivariateNormal
 
 import torch_mnf.flows as nf
@@ -8,7 +9,12 @@ from torch_mnf import data
 torch.manual_seed(0)  # ensure reproducible results
 
 
-def train(flow_model, optim, samples, steps=70) -> None:
+def train(
+    flow_model: nf.NormalizingFlowModel,
+    optim: torch.optim.Optimizer,
+    samples: Tensor,
+    steps: int = 70,
+) -> float:
     for _ in range(steps):
         _, log_det = flow_model.inverse(samples)
         base_log_prob = flow_model.base_log_prob(samples)

@@ -10,13 +10,12 @@ authors = [{ name = "Janosh Riebesell", email = "janosh.riebesell@gmail.com" }]
 readme = "readme.md"
 license = { file = "license" }
 keywords = [
-    "science",
-    "materials informatics",
-    "materials discovery",
-    "chemistry",
-    "data visualization",
-    "plotly",
-    "matplotlib",
+    "multiplicative normalizing flows",
+    "pytorch",
+    "machine learning",
+    "generative models",
+    "probabilistic programming",
+    "autoregressive models",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -44,7 +43,7 @@ dependencies = [
 test = ["pytest", "pytest-cov"]
 
 [tool.setuptools.packages]
-find = { include = ["torch_mnf"] }
+find = {}
 
 [tool.setuptools.package-data]
 torch_mnf = ["*.csv"]
