@@ -1,5 +1,4 @@
-"""
-Implements a Masked Autoregressive MLP, where carefully constructed
+"""Implements a Masked Autoregressive MLP, where carefully constructed
 binary masks over weights ensure the autoregressive property.
 Copied from https://github.com/karpathy/pytorch-made.
 """
@@ -25,15 +24,14 @@ class MaskedLinear(nn.Linear):
 
 class MADE(nn.Sequential):
     def __init__(self, n_in, hidden_sizes, n_out, num_masks=1, natural_ordering=False):
-        """
-        n_in (int): number of inputs
+        """n_in (int): number of inputs
         hidden sizes (list of ints): number of units in hidden layers
         n_out (int): number of outputs, which usually collectively parameterize some 1D
             distribution. Note: if n_out is e.g. 2x larger than n_in (perhaps the mean
             and std), then the first n_in will be all the means and the second n_in will
             be the std. devs. Make sure to deconstruct this correctly downstream.
         num_masks: can be used to train ensemble over orderings/connections
-        natural_ordering: retain ordering of inputs, don't use random permutations
+        natural_ordering: retain ordering of inputs, don't use random permutations.
         """
         assert n_out % n_in == 0, "n_out must be integer multiple of n_in"
         self.n_in = n_in

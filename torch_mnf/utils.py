@@ -44,7 +44,7 @@ def plot_model_preds_for_rotating_img(pred_fn, img, plot_type="violin", axes=(1,
     plt.tight_layout()  # keeps titles clear of above subplots
 
 
-def interruptable(orig_func: Callable = None, handler: Callable = None):
+def interruptible(orig_func: Callable = None, handler: Callable = None):
     """Gracefully abort calls to the decorated function with ctrl + c."""
 
     def wrapper(func):

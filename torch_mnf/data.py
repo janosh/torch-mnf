@@ -9,7 +9,7 @@ from .utils import ROOT
 
 def sample_siggraph(n_samples):
     """Taken from https://blog.evjang.com/2018/01/nf2.html.
-    https://github.com/ericjang/normalizing-flows-tutorial/blob/master/siggraph.pkl
+    https://github.com/ericjang/normalizing-flows-tutorial/blob/master/siggraph.pkl.
     """
     with open(ROOT + "/data/siggraph.pkl", "rb") as file:
         XY = np.array(pickle.load(file))

@@ -3,8 +3,7 @@ from torch import nn
 
 
 class AffineConstantFlow(nn.Module):
-    """
-    Scales + Shifts the flow by (learned) constants per dimension. The only reason
+    """Scales + Shifts the flow by (learned) constants per dimension. The only reason
     to have this layer is that the NICE paper defines a scaling-only layer which
     is a special case of this where t is zero (shift=False).
     """

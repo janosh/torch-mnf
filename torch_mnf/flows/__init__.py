@@ -1,5 +1,4 @@
-"""
-This package implements various flows.
+"""This package implements various flows.
 Each flow is invertible and outputs its log abs det J^-1 "regularization"
 via the log_det method.
 

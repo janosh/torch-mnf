@@ -1,5 +1,5 @@
 """Improved Variational Inference with Inverse Autoregressive Flow (IAF)
-Kingma et al June 2016 https://arxiv.org/abs/1606.04934
+Kingma et al June 2016 https://arxiv.org/abs/1606.04934.
 
 Masked Autoregressive Flow for Density Estimation, Papamakarios et al. May 2017
 https://arxiv.org/abs/1705.07057

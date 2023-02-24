@@ -1,5 +1,4 @@
-"""
-Neural Spline Flows implemented as coupling (NSF_CL) and autoregressive
+"""Neural Spline Flows implemented as coupling (NSF_CL) and autoregressive
 layers (NSF_AR). NSF uses monotonic rational-quadratic spline transforms
 as drop-in replacements for affine or additive transformations.
 
@@ -181,7 +180,7 @@ def RQS(
 
 
 class NSF_AR(nn.Module):
-    """Neural spline flow, coupling layer, [Durkan et al. 2019]"""
+    """Neural spline flow, coupling layer, [Durkan et al. 2019]."""
 
     def __init__(self, dim, K=5, B=3, n_h=8, net_class=MLP):
         super().__init__()
@@ -237,7 +236,7 @@ class NSF_AR(nn.Module):
 
 
 class NSF_CL(nn.Module):
-    """Neural spline flow, coupling layer, [Durkan et al. 2019]"""
+    """Neural spline flow, coupling layer, [Durkan et al. 2019]."""
 
     def __init__(self, dim, K=5, B=3, n_h=8, net_class=MLP):
         super().__init__()
