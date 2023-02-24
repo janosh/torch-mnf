@@ -1,6 +1,5 @@
-"""
-NICE: Non-linear Independent Components Estimation, Dinh et al. 2014
-https://arxiv.org/abs/1410.8516
+"""NICE: Non-linear Independent Components Estimation, Dinh et al. 2014
+https://arxiv.org/abs/1410.8516.
 
 Variational Inference with Normalizing Flows, Rezende and Mohamed 2015
 https://arxiv.org/abs/1505.05770
@@ -11,21 +10,22 @@ https://arxiv.org/abs/1605.08803
 """
 
 import torch
-from torch import nn
+from torch import Tensor, nn
 
 from torch_mnf.models import MLP
 
 
 class AffineHalfFlow(nn.Module):
-    """
-    As seen in RealNVP, affine autoregressive flow (z = x * exp(s) + t), where half of
-    dimensions in x are linearly scaled/transformed as a function of the other half.
+    """As seen in RealNVP, affine autoregressive flow (z = x * exp(s) + t), where half
+    of dimensions in x are linearly scaled/transformed as a function of the other half.
     Which half is which is determined by the parity bit.
     - RealNVP both scales and shifts (default)
-    - NICE only shifts
+    - NICE only shifts.
     """
 
-    def __init__(self, dim, parity, h_sizes=(24, 24, 24), scale=True, shift=True):
+    def __init__(
+        self, dim, parity, h_sizes=(24, 24, 24), scale=True, shift=True
+    ) -> None:
         super().__init__()
         self.parity = parity
         self.s_net = self.t_net = lambda x: x.new_zeros(x.size(0), dim // 2)
@@ -34,7 +34,7 @@ class AffineHalfFlow(nn.Module):
         if shift:
             self.t_net = MLP(dim // 2, *h_sizes, dim // 2)
 
-    def forward(self, z, inverse=False):
+    def forward(self, z: Tensor, inverse: bool = False) -> Tensor:
         z0, z1 = z.chunk(2, dim=1)
         if self.parity:
             z0, z1 = z1, z0
@@ -53,5 +53,5 @@ class AffineHalfFlow(nn.Module):
         log_det = s.sum(1)
         return x, log_det
 
-    def inverse(self, x):
+    def inverse(self, x: Tensor) -> Tensor:
         return self.forward(x, inverse=True)

@@ -1,4 +1,5 @@
 import torch
+from torch import Tensor
 from torch.distributions import MultivariateNormal
 
 import torch_mnf.flows as nf
@@ -8,7 +9,12 @@ from torch_mnf import data
 torch.manual_seed(0)  # ensure reproducible results
 
 
-def train(flow_model, optim, samples, steps=70):
+def train(
+    flow_model: nf.NormalizingFlowModel,
+    optim: torch.optim.Optimizer,
+    samples: Tensor,
+    steps: int = 70,
+) -> float:
     for _ in range(steps):
         _, log_det = flow_model.inverse(samples)
         base_log_prob = flow_model.base_log_prob(samples)
@@ -29,7 +35,7 @@ samples = data.sample_moons(128)
 base = MultivariateNormal(torch.zeros(2), torch.eye(2))
 
 
-def e2e_test_flow_model(flow, loss_bound):
+def e2e_test_flow_model(flow, loss_bound) -> None:
     """End-to-end test ensuring some flow works with NormalizingFlowModel
     and training performance did not regress.
     """
@@ -42,17 +48,17 @@ def e2e_test_flow_model(flow, loss_bound):
     assert loss2 < loss_bound
 
 
-def test_rnvp():
+def test_rnvp() -> None:
     flow = [nf.AffineHalfFlow(dim=2, parity=i % 2) for i in range(2)]
     e2e_test_flow_model(flow, 236)
 
 
-def test_maf():
+def test_maf() -> None:
     flow = [nf.MAF(dim=2, parity=i % 2) for i in range(2)]
     e2e_test_flow_model(flow, 247)
 
 
-def test_maf_with_actnorm():
+def test_maf_with_actnorm() -> None:
     flow = [nf.MAF(dim=2, parity=i % 2) for i in range(2)]
     # prepend each MAF with ActNormFlow
     for idx in reversed(range(len(flow))):
@@ -60,17 +66,17 @@ def test_maf_with_actnorm():
     e2e_test_flow_model(flow, 226)
 
 
-def test_iaf():
+def test_iaf() -> None:
     flow = [nf.IAF(dim=2, parity=i % 2) for i in range(2)]
     e2e_test_flow_model(flow, 300)
 
 
-def test_glow():
+def test_glow() -> None:
     flow = [nf.Glow(dim=2) for _ in range(2)]
     e2e_test_flow_model(flow, 308)
 
 
-def test_glow_with_actnorm():
+def test_glow_with_actnorm() -> None:
     flow = [nf.Glow(dim=2) for _ in range(2)]
     # prepend each Glow (1x1 convolution) with ActNormFlow
     for idx in reversed(range(len(flow))):
@@ -78,12 +84,12 @@ def test_glow_with_actnorm():
     e2e_test_flow_model(flow, 246)
 
 
-def test_nsfcl():
+def test_nsfcl() -> None:
     flow = [nf.NSF_CL(dim=2, K=8, B=3, n_h=16) for _ in range(2)]
     e2e_test_flow_model(flow, 207)
 
 
-def test_nsfcl_with_actnorm():
+def test_nsfcl_with_actnorm() -> None:
     flow = [nf.NSF_CL(dim=2, K=8, B=3, n_h=16) for _ in range(2)]
     # prepend each NSF flow with ActNormFlow and Glow
     for idx in reversed(range(len(flow))):
@@ -91,12 +97,12 @@ def test_nsfcl_with_actnorm():
     e2e_test_flow_model(flow, 184)
 
 
-def test_nsfar():
+def test_nsfar() -> None:
     flow = [nf.NSF_AR(dim=2, K=8, B=3, n_h=16) for _ in range(2)]
     e2e_test_flow_model(flow, 318)
 
 
-def test_nsfar_with_actnorm():
+def test_nsfar_with_actnorm() -> None:
     flow = [nf.NSF_AR(dim=2, K=8, B=3, n_h=16) for _ in range(2)]
     # prepend each NSF flow with ActNormFlow and Glow
     for idx in reversed(range(len(flow))):

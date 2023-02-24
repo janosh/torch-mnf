@@ -18,15 +18,14 @@ class MNFConv2d(nn.Module):
     def __init__(
         self, n_in, n_out, kernel_size, n_flows_q=2, n_flows_r=2, h_sizes=(50,)
     ):
-        """
-        Args:
-            n_in (int): number of input channels
-            n_out (int): number of output channels
-            kernel_size (int): side length of square kernel
-            n_flows_q (int, optional): length of q-flow.
-            n_flows_r (int, optional): length of r-flow.
-            h_sizes (list[int], optional): Number of layers and their node count
-                in each hidden layer of both the q and r flow.
+        """Args:
+        n_in (int): number of input channels
+        n_out (int): number of output channels
+        kernel_size (int): side length of square kernel
+        n_flows_q (int, optional): length of q-flow.
+        n_flows_r (int, optional): length of r-flow.
+        h_sizes (list[int], optional): Number of layers and their node count
+        in each hidden layer of both the q and r flow.
         """
         super().__init__()
 

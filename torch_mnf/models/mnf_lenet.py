@@ -1,3 +1,5 @@
+from typing import Any
+
 from torch import nn
 
 import torch_mnf.layers
@@ -6,7 +8,8 @@ import torch_mnf.layers
 class MNFLeNet(nn.Sequential):
     """Bayesian LeNet with parameter posteriors modeled by normalizing flows."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize the model."""
         layers = [
             torch_mnf.layers.MNFConv2d(1, 20, kernel_size=5, **kwargs),
             nn.ReLU(),
@@ -22,13 +25,7 @@ class MNFLeNet(nn.Sequential):
         ]
         super().__init__(*layers)
 
-    # just for debugging, this is what happens anyway in nn.Sequential
-    def forward(self, x):
-        for lyr in self:
-            x = lyr(x)
-        return x
-
-    def kl_div(self):
+    def kl_div(self) -> float:
         """Compute current KL divergence of the whole model. Given by the sum
         of KL divs. from each MNF layer. Use as a regularization term during training.
         """
