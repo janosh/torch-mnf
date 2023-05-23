@@ -10,21 +10,21 @@ authors = [{ name = "Janosh Riebesell", email = "janosh.riebesell@gmail.com" }]
 readme = "readme.md"
 license = { file = "license" }
 keywords = [
-    "multiplicative normalizing flows",
-    "pytorch",
-    "machine learning",
-    "generative models",
-    "probabilistic programming",
     "autoregressive models",
+    "generative models",
+    "machine learning",
+    "multiplicative normalizing flows",
+    "probabilistic programming",
+    "pytorch",
 ]
 classifiers = [
-    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
 ]
 urls = { Homepage = "https://github.com/janosh/torch-mnf" }
 requires-python = ">=3.8"
@@ -73,7 +73,7 @@ target-version = "py38"
 select = [
     "B",   # flake8-bugbear
     "D",   # pydocstyle
-    "E",   # pycodestyle
+    "E",   # pycodestyle error
     "F",   # pyflakes
     "I",   # isort
     "PLE", # pylint error
@@ -83,16 +83,16 @@ select = [
     "SIM", # flake8-simplify
     "TID", # tidy imports
     "UP",  # pyupgrade
-    "W",   # pycodestyle
+    "W",   # pycodestyle warning
     "YTT", # flake8-2020
 ]
 ignore = [
     "D100",   # Missing docstring in public module
     "D104",   # Missing docstring in public package
     "D205",   # 1 blank line required between summary line and description
+    "E731",   # Do not assign a lambda expression, use a def
     "SIM105", # Use contextlib.suppress(FileNotFoundError) instead of try-except-pass
     "SIM115", # Use context handler for opening files
-    "E731",   # Do not assign a lambda expression, use a def
 ]
 pydocstyle.convention = "google"
 isort.lines-after-imports = 2
