@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import wraps
 from os.path import abspath, dirname
 from typing import Callable
@@ -44,7 +46,10 @@ def plot_model_preds_for_rotating_img(pred_fn, img, plot_type="violin", axes=(1,
     plt.tight_layout()  # keeps titles clear of above subplots
 
 
-def interruptible(orig_func: Callable = None, handler: Callable = None):
+def interruptible(
+    orig_func: Callable | None = None,  # type: ignore[type-arg]
+    handler: Callable | None = None,  # type: ignore[type-arg]
+) -> Callable:  # type: ignore[type-arg]
     """Gracefully abort calls to the decorated function with ctrl + c."""
 
     def wrapper(func):

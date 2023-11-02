@@ -28,8 +28,7 @@ y_val = test_set.targets[:500]
 def mnf_loss_fn(preds, labels):
     nll = nll_loss(preds, labels).mean()
     kl_div = mnf_lenet.kl_div() * 1e-3
-    loss = nll + kl_div
-    return loss
+    return nll + kl_div
 
 
 def trainer(model, optim, loss_fn, data_loader):
@@ -48,10 +47,10 @@ mnf_lenet = MNFLeNet()
 adam = torch.optim.Adam(mnf_lenet.parameters())
 
 
-def test_acc():
+def test_acc() -> None:
     trainer(mnf_lenet, adam, mnf_loss_fn, train_loader)
 
     val_preds = mnf_lenet(X_val)
     val_acc = (y_val == val_preds.argmax(1)).float().mean()
     print(f"val_acc: {val_acc:.4g}")
-    assert val_acc > 0.8  # not trying to win a contest, just make sure it trains
+    assert val_acc > 0.8  # just make sure it trains
