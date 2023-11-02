@@ -57,4 +57,4 @@ class IAF(MAF):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.forward, self.inverse = self.inverse, self.forward
+        self.forward, self.inverse = self.inverse, self.forward  # type: ignore[method-assign]

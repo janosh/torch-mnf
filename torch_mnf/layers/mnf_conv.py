@@ -1,3 +1,5 @@
+from typing import Sequence
+
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -16,8 +18,14 @@ class MNFConv2d(nn.Module):
     """
 
     def __init__(
-        self, n_in, n_out, kernel_size, n_flows_q=2, n_flows_r=2, h_sizes=(50,)
-    ):
+        self,
+        n_in: int,
+        n_out: int,
+        kernel_size: int,
+        n_flows_q: int = 2,
+        n_flows_r: int = 2,
+        h_sizes: Sequence[int] = (50,),
+    ) -> None:
         """Args:
         n_in (int): number of input channels
         n_out (int): number of output channels

@@ -2,12 +2,13 @@ from typing import Sequence
 
 import torch
 from torch import Tensor, nn
+from torch.distributions import Distribution
 
 
 class NormalizingFlow(nn.Module):
     """A sequence of normalizing flows is a normalizing flow."""
 
-    def __init__(self, flows):
+    def __init__(self, flows: Sequence[nn.Module]) -> None:
         super().__init__()
         self.flows = nn.ModuleList(flows)
 
@@ -33,7 +34,7 @@ class NormalizingFlow(nn.Module):
 class NormalizingFlowModel(NormalizingFlow):
     """A normalizing flow model is a (base distro, flow) pair."""
 
-    def __init__(self, base, flows) -> None:
+    def __init__(self, base: Distribution, flows: Sequence[nn.Module]) -> None:
         """Initialize a normalizing flow model."""
         super().__init__(flows)
         self.base = base

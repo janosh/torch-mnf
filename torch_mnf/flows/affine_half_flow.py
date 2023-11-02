@@ -9,6 +9,8 @@ https://arxiv.org/abs/1605.08803
 (Laurent's extension of NICE)
 """
 
+from typing import Sequence
+
 import torch
 from torch import Tensor, nn
 
@@ -24,7 +26,12 @@ class AffineHalfFlow(nn.Module):
     """
 
     def __init__(
-        self, dim, parity, h_sizes=(24, 24, 24), scale=True, shift=True
+        self,
+        dim: int,
+        parity: bool,
+        h_sizes: Sequence[int] = (24, 24, 24),
+        scale: bool = True,
+        shift: bool = True,
     ) -> None:
         super().__init__()
         self.parity = parity
