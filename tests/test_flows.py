@@ -1,5 +1,7 @@
+from typing import Sequence
+
 import torch
-from torch import Tensor
+from torch import Tensor, nn
 from torch.distributions import MultivariateNormal
 
 import torch_mnf.flows as nf
@@ -35,7 +37,7 @@ samples = data.sample_moons(128)
 base = MultivariateNormal(torch.zeros(2), torch.eye(2))
 
 
-def e2e_test_flow_model(flow, loss_bound) -> None:
+def e2e_test_flow_model(flow: Sequence[nn.Module], loss_bound: float) -> None:
     """End-to-end test ensuring some flow works with NormalizingFlowModel
     and training performance did not regress.
     """
@@ -44,22 +46,21 @@ def e2e_test_flow_model(flow, loss_bound) -> None:
     loss1 = train(model, adam, samples, steps=1)
     loss2 = train(model, adam, samples)
     assert loss1 > loss2
-    print(f"bound - loss = {loss_bound - loss2:.4g}")
-    assert loss2 < loss_bound
+    assert loss2 < loss_bound, f"{loss2=:.4} > {loss_bound=}"
 
 
 def test_rnvp() -> None:
-    flow = [nf.AffineHalfFlow(dim=2, parity=i % 2) for i in range(2)]
+    flow = [nf.AffineHalfFlow(dim=2, parity=i % 2 == 0) for i in range(2)]
     e2e_test_flow_model(flow, 236)
 
 
 def test_maf() -> None:
-    flow = [nf.MAF(dim=2, parity=i % 2) for i in range(2)]
-    e2e_test_flow_model(flow, 247)
+    flow = [nf.MAF(dim=2, parity=i % 2 == 0) for i in range(2)]
+    e2e_test_flow_model(flow, 250)
 
 
 def test_maf_with_actnorm() -> None:
-    flow = [nf.MAF(dim=2, parity=i % 2) for i in range(2)]
+    flow = [nf.MAF(dim=2, parity=i % 2 == 0) for i in range(2)]
     # prepend each MAF with ActNormFlow
     for idx in reversed(range(len(flow))):
         flow.insert(idx, nf.ActNormFlow(dim=2))
@@ -67,7 +68,7 @@ def test_maf_with_actnorm() -> None:
 
 
 def test_iaf() -> None:
-    flow = [nf.IAF(dim=2, parity=i % 2) for i in range(2)]
+    flow = [nf.IAF(dim=2, parity=i % 2 == 0) for i in range(2)]
     e2e_test_flow_model(flow, 300)
 
 

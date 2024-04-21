@@ -8,24 +8,24 @@ default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.3
+    rev: v0.4.1
     hooks:
       - id: ruff
         args: [--fix, --ignore, D]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.6.1
+    rev: v1.9.0
     hooks:
       - id: mypy
 
   - repo: https://github.com/janosh/format-ipy-cells
-    rev: v0.1.10
+    rev: v0.1.11
     hooks:
       - id: format-ipy-cells
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: check-case-conflict
       - id: check-symlinks
@@ -44,7 +44,7 @@ repos:
         args: [--check-filenames]
 
   - repo: https://github.com/kynan/nbstripout
-    rev: 0.6.1
+    rev: 0.7.1
     hooks:
       - id: nbstripout
         args: [--drop-empty-cells, --keep-output]
