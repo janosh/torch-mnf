@@ -8,6 +8,10 @@ and estimate densities with one forward pass only, whereas MAF would need D pass
 to generate data and IAF would need D passes to estimate densities."
 """
 
+from __future__ import annotations
+
+from typing import Sequence
+
 import torch
 from torch import nn
 
@@ -20,13 +24,19 @@ class MAF(nn.Module):
     inverse() (for sampling).
     """
 
-    def __init__(self, dim, parity, net=None, h_sizes=(24, 24, 24)):
+    def __init__(
+        self,
+        dim: int,
+        parity: bool,
+        net: nn.Module = None,
+        h_sizes: Sequence[int] = (24, 24, 24),
+    ) -> None:
         super().__init__()
         # Uses a 4-layer auto-regressive MLP by default.
         self.net = net or MADE(dim, h_sizes, 2 * dim, natural_ordering=True)
         self.parity = parity
 
-    def forward(self, z):
+    def forward(self, z: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         batch_size, z_size = z.shape
         # we have to decode elements of x sequentially one at a time
         x = torch.zeros_like(z)
@@ -39,7 +49,7 @@ class MAF(nn.Module):
             log_det += -s[:, i]
         return x, log_det
 
-    def inverse(self, x):
+    def inverse(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         # Since we can evaluate all of z in parallel, density estimation is fast.
         st = self.net(x)
         s, t = st.split(x.size(1), dim=1)
@@ -57,4 +67,4 @@ class IAF(MAF):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.forward, self.inverse = self.inverse, self.forward  # type: ignore[method-assign]
+        self.forward, self.inverse = self.inverse, self.forward  # type: ignore[assignment]
