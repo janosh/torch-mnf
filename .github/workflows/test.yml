@@ -5,22 +5,11 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.8
-          cache: pip
-
-      - name: Install torch-mnf
-        run: pip install .[test]
-
-      - name: Run Tests
-        run: pytest --cov .
+    uses: janosh/workflows/.github/workflows/pytest-release.yml@main
+    with:
+      python-version: "3.10"
+    secrets: inherit

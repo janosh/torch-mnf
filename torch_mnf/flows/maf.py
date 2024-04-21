@@ -8,6 +8,8 @@ and estimate densities with one forward pass only, whereas MAF would need D pass
 to generate data and IAF would need D passes to estimate densities."
 """
 
+from __future__ import annotations
+
 from typing import Sequence
 
 import torch
