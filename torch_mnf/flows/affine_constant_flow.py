@@ -8,24 +8,24 @@ class AffineConstantFlow(nn.Module):
     is a special case of this where t is zero (shift=False).
     """
 
-    def __init__(self, dim, scale=True, shift=True):
+    def __init__(self, dim: int, scale: bool = True, shift: bool = True) -> None:
         super().__init__()
         self.s = nn.Parameter(torch.randn(1, dim)) if scale else torch.zeros(1, dim)
         self.t = nn.Parameter(torch.randn(1, dim)) if shift else torch.zeros(1, dim)
 
-    def forward(self, z):
+    def forward(self, z: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         x = z * torch.exp(self.s) + self.t
         log_det = torch.sum(self.s, dim=1)
         return x, log_det
 
-    def inverse(self, x):
+    def inverse(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         z = (x - self.t) * torch.exp(-self.s)
         log_det = torch.sum(-self.s, dim=1)
         return z, log_det
 
 
 class ActNormFlow(AffineConstantFlow):
-    """Really an AffineConstantFlow but with activation normalizaton (similar
+    """Really an AffineConstantFlow but with activation normalization (similar
     to batch normalization), a data-dependent initialization, where on
     the very first batch we cleverly initialize the scale and translate
     function (s, t) so that the output is unit Gaussian. After initialization,
