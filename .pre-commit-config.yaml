@@ -2,20 +2,20 @@ ci:
   autoupdate_schedule: quarterly
   skip: [mypy]
 
-default_stages: [commit]
+default_stages: [pre-commit]
 
 default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.1
+    rev: v0.8.6
     hooks:
       - id: ruff
         args: [--fix, --ignore, D]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.9.0
+    rev: v1.14.1
     hooks:
       - id: mypy
 
@@ -25,7 +25,7 @@ repos:
       - id: format-ipy-cells
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: check-case-conflict
       - id: check-symlinks
@@ -37,14 +37,14 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.3.0
     hooks:
       - id: codespell
         exclude_types: [jupyter]
         args: [--check-filenames]
 
   - repo: https://github.com/kynan/nbstripout
-    rev: 0.7.1
+    rev: 0.8.1
     hooks:
       - id: nbstripout
         args: [--drop-empty-cells, --keep-output]
