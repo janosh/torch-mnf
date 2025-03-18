@@ -9,7 +9,7 @@ on:
 
 jobs:
   tests:
-    uses: janosh/workflows/.github/workflows/pytest-release.yml@main
+    uses: janosh/workflows/.github/workflows/pytest.yml@main
     with:
       python-version: "3.10"
     secrets: inherit
