@@ -70,6 +70,8 @@ ignore-words-list = "hist"
 [tool.ruff]
 target-version = "py38"
 include = ["**/pyproject.toml", "*.ipynb", "*.py", "*.pyi"]
+
+[tool.ruff.lint]
 select = [
     "B",   # flake8-bugbear
     "D",   # pydocstyle
@@ -97,7 +99,7 @@ ignore = [
 pydocstyle.convention = "google"
 isort.lines-after-imports = 2
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D103"]
 "__init__.py" = ["F401"]
 "examples/*" = ["D"]
