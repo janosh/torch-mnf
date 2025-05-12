@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Sequence
 
 import torch
@@ -12,7 +14,8 @@ class NormalizingFlow(nn.Module):
         super().__init__()
         self.flows = nn.ModuleList(flows)
 
-    def forward(self, z: Tensor) -> Tensor:  # z -> x
+    def forward(self, z: Tensor) -> tuple[list[Tensor], Tensor]:  # z -> x
+        """Flow forward pass."""
         log_det = torch.zeros(z.size(0), device=z.device)
         xs = [z]
         for flow in self.flows:
@@ -21,7 +24,8 @@ class NormalizingFlow(nn.Module):
             xs.append(z)
         return xs, log_det
 
-    def inverse(self, x: Tensor) -> Tensor:  # x -> z
+    def inverse(self, x: Tensor) -> tuple[list[Tensor], Tensor]:  # x -> z
+        """Flow inverse pass."""
         log_det = torch.zeros(x.size(0), device=x.device)
         zs = [x]
         for flow in reversed(self.flows):
@@ -44,8 +48,8 @@ class NormalizingFlowModel(NormalizingFlow):
         zs, _ = self.inverse(x)
         return self.base.log_prob(zs[-1])
 
-    def sample(self, *num_samples: Sequence[int]) -> Tensor:
+    def sample(self, *num_samples: int) -> Tensor:
         """Sample from the flow's base distribution."""
-        z = self.base.sample(num_samples)
+        z = self.base.sample(*num_samples)
         xs, _ = self.forward(z)
         return xs

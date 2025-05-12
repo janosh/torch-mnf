@@ -10,7 +10,7 @@ class Glow(nn.Module):
     def __init__(self, dim):
         super().__init__()
         Q = torch.nn.init.orthogonal_(torch.randn(dim, dim))
-        P, L, U = torch.lu_unpack(*Q.lu())
+        P, L, U = torch.lu_unpack(*Q.lu())  # ty: ignore[missing-argument]
         self.P = P  # remains fixed during optimization
         self.L = nn.Parameter(L)  # lower triangular portion
         self.S = nn.Parameter(U.diag())  # "crop out" the diagonal to its own parameter

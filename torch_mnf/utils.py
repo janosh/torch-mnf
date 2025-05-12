@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import os
 from functools import wraps
-from os.path import abspath, dirname
 from typing import Callable
 
 import matplotlib.pyplot as plt
@@ -10,7 +10,7 @@ import seaborn as sns
 from scipy.ndimage import rotate
 
 
-ROOT = dirname(dirname(abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(__file__))
 
 
 def plot_model_preds_for_rotating_img(pred_fn, img, plot_type="violin", axes=(1, 2)):
@@ -39,7 +39,7 @@ def plot_model_preds_for_rotating_img(pred_fn, img, plot_type="violin", axes=(1,
             sns.barplot(data=df, x="digit", y="softmax", ax=ax1)
 
         ax1.set(ylim=[None, 1.1], title=f"mean max: {preds.mean(0).argmax()}")
-        ax2 = ax1.inset_axes([0, 0.5, 0.4, 0.4])
+        ax2 = ax1.inset_axes((0, 0.5, 0.4, 0.4))
         ax2.axis("off")
         ax2.imshow(img_rot.squeeze(), cmap="gray")
 

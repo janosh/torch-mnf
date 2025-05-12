@@ -41,7 +41,8 @@ class AffineHalfFlow(nn.Module):
         if shift:
             self.t_net = MLP(dim // 2, *h_sizes, dim // 2)
 
-    def forward(self, z: Tensor, inverse: bool = False) -> Tensor:
+    def forward(self, z: Tensor, inverse: bool = False) -> tuple[Tensor, Tensor]:
+        """Affine half flow forward pass."""
         z0, z1 = z.chunk(2, dim=1)
         if self.parity:
             z0, z1 = z1, z0
@@ -60,5 +61,6 @@ class AffineHalfFlow(nn.Module):
         log_det = s.sum(1)
         return x, log_det
 
-    def inverse(self, x: Tensor) -> Tensor:
+    def inverse(self, x: Tensor) -> tuple[Tensor, Tensor]:
+        """Affine half flow inverse pass."""
         return self.forward(x, inverse=True)
