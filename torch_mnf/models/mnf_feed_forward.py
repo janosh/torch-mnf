@@ -16,7 +16,10 @@ class MNFFeedForward(Sequential):
     """
 
     def __init__(
-        self, layer_sizes: Sequence[int], activation: nn.Module = ReLU, **kwargs: Any
+        self,
+        layer_sizes: Sequence[int],
+        activation: type[nn.Module] = ReLU,
+        **kwargs: Any,
     ) -> None:
         """Initialize the model."""
         layers = []

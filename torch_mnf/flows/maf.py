@@ -28,7 +28,7 @@ class MAF(nn.Module):
         self,
         dim: int,
         parity: bool,
-        net: nn.Module = None,
+        net: nn.Module | None = None,
         h_sizes: Sequence[int] = (24, 24, 24),
     ) -> None:
         super().__init__()
@@ -37,6 +37,7 @@ class MAF(nn.Module):
         self.parity = parity
 
     def forward(self, z: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """MAF forward pass."""
         batch_size, z_size = z.shape
         # we have to decode elements of x sequentially one at a time
         x = torch.zeros_like(z)
@@ -50,6 +51,7 @@ class MAF(nn.Module):
         return x, log_det
 
     def inverse(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """MAF inverse pass."""
         # Since we can evaluate all of z in parallel, density estimation is fast.
         st = self.net(x)
         s, t = st.split(x.size(1), dim=1)

@@ -103,3 +103,6 @@ isort.lines-after-imports = 2
 "tests/*" = ["D103"]
 "__init__.py" = ["F401"]
 "examples/*" = ["D"]
+
+[tool.ty.rules]
+unresolved-import = "ignore"

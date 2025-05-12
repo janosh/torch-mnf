@@ -13,10 +13,11 @@ torch.manual_seed(0)  # ensure reproducible results
 
 def train(
     flow_model: nf.NormalizingFlowModel,
-    optim: torch.optim.Optimizer,
+    optim: torch.optim.Optimizer,  # ty: ignore[invalid-type-form]
     samples: Tensor,
     steps: int = 70,
 ) -> float:
+    """Train a flow model."""
     for _ in range(steps):
         _, log_det = flow_model.inverse(samples)
         base_log_prob = flow_model.base_log_prob(samples)
@@ -27,7 +28,7 @@ def train(
         loss.backward()  # compute new gradients
         optim.step()  # update weights
 
-    return loss  # return final loss for e2e tests to discover regressions
+    return float(loss)  # return final loss for e2e tests to discover regressions
 
 
 samples = data.sample_moons(128)
