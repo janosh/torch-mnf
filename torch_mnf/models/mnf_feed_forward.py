@@ -1,4 +1,5 @@
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from torch import nn
 from torch.nn import BatchNorm1d, ReLU, Sequential
@@ -23,7 +24,7 @@ class MNFFeedForward(Sequential):
     ) -> None:
         """Initialize the model."""
         layers = []
-        for s1, s2 in zip(layer_sizes, layer_sizes[1:]):
+        for s1, s2 in zip(layer_sizes, layer_sizes[1:], strict=False):
             layers.extend(
                 [MNFLinear()(s1, s2, **kwargs), activation(), BatchNorm1d(s2)]
             )

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable
 
 import matplotlib.pyplot as plt
 import pandas as pd

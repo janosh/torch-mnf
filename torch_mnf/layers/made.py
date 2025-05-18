@@ -41,7 +41,7 @@ class MADE(nn.Sequential):
         # define a simple MLP neural net
         layers = []
         hs = [n_in, *list(hidden_sizes), n_out]
-        for h0, h1 in zip(hs, hs[1:]):
+        for h0, h1 in zip(hs, hs[1:], strict=False):
             layers.extend([MaskedLinear(h0, h1), nn.ReLU()])
         super().__init__(*layers[:-1])  # drop last ReLU)
 
@@ -89,5 +89,5 @@ class MADE(nn.Sequential):
 
         # set the masks in all MaskedLinear layers
         masked_layers = [lyr for lyr in self if isinstance(lyr, MaskedLinear)]
-        for lyr, m in zip(masked_layers, masks):
+        for lyr, m in zip(masked_layers, masks, strict=False):
             lyr.set_mask(m)
