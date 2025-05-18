@@ -1,23 +1,13 @@
-ci:
-  autoupdate_schedule: quarterly
-  skip: [ty]
-
 default_stages: [pre-commit]
-
 default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.9
+    rev: v0.14.3
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [--fix, --ignore, D]
       - id: ruff-format
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
-    hooks:
-      - id: mypy
 
   - repo: https://github.com/janosh/format-ipy-cells
     rev: v0.1.11
@@ -25,7 +15,7 @@ repos:
       - id: format-ipy-cells
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-case-conflict
       - id: check-symlinks
@@ -40,6 +30,7 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
+        stages: [pre-commit, commit-msg]
         exclude_types: [jupyter]
         args: [--check-filenames]
 
@@ -53,5 +44,6 @@ repos:
     hooks:
       - id: ty
         name: ty check
-        entry: ty check .
+        entry: ty check
         language: python
+        additional_dependencies: [ty]
