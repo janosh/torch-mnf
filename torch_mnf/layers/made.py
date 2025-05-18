@@ -15,8 +15,9 @@ class MaskedLinear(nn.Linear):
         super().__init__(n_in, n_out, bias)
         self.register_buffer("mask", torch.ones(n_in, n_out))
 
-    def set_mask(self, mask):
-        self.mask.data.copy_(torch.from_numpy(mask))
+    def set_mask(self, mask: np.ndarray) -> None:
+        """Set the mask for this layer."""
+        self.mask = torch.from_numpy(mask)
 
     def forward(self, x):
         return x @ (self.weight.T * self.mask) + self.bias
@@ -41,7 +42,7 @@ class MADE(nn.Sequential):
         # define a simple MLP neural net
         layers = []
         hs = [n_in, *list(hidden_sizes), n_out]
-        for h0, h1 in zip(hs, hs[1:]):
+        for h0, h1 in zip(hs, hs[1:], strict=False):
             layers.extend([MaskedLinear(h0, h1), nn.ReLU()])
         super().__init__(*layers[:-1])  # drop last ReLU)
 
@@ -89,5 +90,5 @@ class MADE(nn.Sequential):
 
         # set the masks in all MaskedLinear layers
         masked_layers = [lyr for lyr in self if isinstance(lyr, MaskedLinear)]
-        for lyr, m in zip(masked_layers, masks):
+        for lyr, m in zip(masked_layers, masks, strict=False):
             lyr.set_mask(m)

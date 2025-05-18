@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import torch
 from torch import Tensor, nn
@@ -52,4 +52,4 @@ class NormalizingFlowModel(NormalizingFlow):
         """Sample from the flow's base distribution."""
         z = self.base.sample(*num_samples)
         xs, _ = self.forward(z)
-        return xs
+        return xs[-1]

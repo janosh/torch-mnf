@@ -9,7 +9,7 @@ https://arxiv.org/abs/1605.08803
 (Laurent's extension of NICE)
 """
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import torch
 from torch import Tensor, nn
